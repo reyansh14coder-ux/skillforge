@@ -8,7 +8,9 @@
 [![Tests](https://img.shields.io/badge/tests-49%20passing-brightgreen.svg)](https://github.com/reyansh14coder-ux/skillforge)
 [![Downloads](https://img.shields.io/badge/download-pip%20install%20skillforge-ff69b4.svg)](https://pypi.org/project/skillforge/)
 [![MCP Ready](https://img.shields.io/badge/MCP-ready-7c3aed.svg)](https://modelcontextprotocol.io)
-[![Skills](https://img.shields.io/badge/skills-8%20built--in-orange.svg)](https://github.com/reyansh14coder-ux/skillforge)
+[![Templates](https://img.shields.io/badge/templates-20%20built--in-orange.svg)](https://github.com/reyansh14coder-ux/skillforge)
+[![Commands](https://img.shields.io/badge/commands-25%20CLI-blue.svg)](https://github.com/reyansh14coder-ux/skillforge)
+[![Quality](https://img.shields.io/badge/quality-scoring-brightgreen.svg)](https://github.com/reyansh14coder-ux/skillforge)
 
 ---
 
@@ -38,13 +40,33 @@
 
 > "Every developer is building AI agent skills, but there's no npm for them. Until now."
 
-- **49 tests passing** — battle-tested and reliable
-- **8 built-in templates** — code review, security audit, test generation, and more
-- **MCP integration** — generate MCP configs for any skill
-- **Cross-framework** — works with Claude Code, Codex, Cursor, Cline, OpenCode
-- **Dependency resolution** — like npm, but for AI skills
-- **Composition engine** — chain, parallel, or DAG-orchestrate skills
-- **17+ CLI commands** — full control from your terminal
+### 🚀 The Numbers Speak
+
+| Metric | Value |
+|--------|-------|
+| **Tests Passing** | 49/49 |
+| **Built-in Templates** | 20 production-ready |
+| **CLI Commands** | 25+ |
+| **Quality Checks** | 4 dimensions |
+| **Export Formats** | Claude, Cursor, Cline |
+| **Composition Types** | Chain, Parallel, DAG |
+
+### 🏆 What Makes SkillForge Top-Tier
+
+- **Battle-tested** — 49 tests passing with CI on every push
+- **Production-ready** — Quality scoring, versioning, dependency resolution
+- **Developer-first** — Beautiful CLI output, comprehensive docs
+- **Extensible** — Templates, plugins, MCP integration
+- **Fast** — Sub-second operations on local registry
+- **Secure** — Sandboxed execution, fingerprinting, validation
+
+### 💡 Who Uses SkillForge?
+
+- **AI Agent Developers** — Package and distribute skills
+- **DevOps Teams** — Automate infrastructure with reusable skills
+- **Security Engineers** — Audit, scan, and harden code
+- **Full-Stack Devs** — Scaffold projects, generate tests, create APIs
+- **Open Source Contributors** — Share skills with the community
 
 ---
 
@@ -827,33 +849,183 @@ Options:
   --help    Show this message and exit
 ```
 
+### `skillforge score`
+
+Calculate quality score for a skill.
+
+```bash
+skillforge score [PATH]
+
+Arguments:
+  PATH    Path to skill directory (default: current)
+```
+
+**Output:**
+```
+┌────────────────────┬─────────┬────────┐
+│ Dimension          │ Score   │ Grade  │
+├────────────────────┼─────────┼────────┤
+│ Overall            │ 87.5/100│ 🥇 A   │
+│ Metadata           │ 90.0    │ A      │
+│ Documentation      │ 85.0    │ B+     │
+│ Structure          │ 100.0   │ A+     │
+│ Completeness       │ 75.0    │ B+     │
+└────────────────────┴─────────┴────────┘
+```
+
+### `skillforge changelog`
+
+Generate a changelog for a skill.
+
+```bash
+skillforge changelog [PATH]
+
+Arguments:
+  PATH    Path to skill directory (default: current)
+```
+
+### `skillforge docs`
+
+Generate documentation for a skill.
+
+```bash
+skillforge docs [PATH] [OPTIONS]
+
+Arguments:
+  PATH    Path to skill directory (default: current)
+
+Options:
+  --output, -o TEXT    Output file (default: SKILL.md)
+```
+
+### `skillforge recommend`
+
+Get skill recommendations based on current skill.
+
+```bash
+skillforge recommend [PATH]
+
+Arguments:
+  PATH    Path to skill directory (default: current)
+```
+
+### `skillforge compress`
+
+Compress a skill into a minimal bundle.
+
+```bash
+skillforge compress [PATH] [OPTIONS]
+
+Arguments:
+  PATH    Path to skill directory (default: current)
+
+Options:
+  --output, -o TEXT    Output file (default: <skill-name>.bundle)
+```
+
+### `skillforge decompress`
+
+Decompress a skill bundle.
+
+```bash
+skillforge decompress [BUNDLE_FILE] [OPTIONS]
+
+Arguments:
+  BUNDLE_FILE    Path to the bundle file
+
+Options:
+  --output, -o TEXT    Output directory (default: current)
+```
+
+### `skillforge inspect`
+
+Deep inspect a skill with detailed analysis.
+
+```bash
+skillforge inspect [PATH]
+
+Arguments:
+  PATH    Path to skill directory (default: current)
+```
+
 ---
 
 ## Built-in Templates
 
-SkillForge comes with **8 production-ready templates** to scaffold your skills:
+SkillForge comes with **20 production-ready templates** organized by category:
 
+### 📊 Code Quality
 | Template | Description | Use Case |
 |----------|-------------|----------|
 | `code-review` | Automated code review | Review PRs for bugs and security |
-| `security-audit` | Security vulnerability scanner | OWASP Top 10 checks, CVE scanning |
-| `test-generator` | Generate comprehensive tests | Unit, integration, edge cases |
 | `refactor-assistant` | Safe code refactoring | Code smells, anti-patterns |
+| `test-generator` | Generate comprehensive tests | Unit, integration, edge cases |
+
+### 🔒 Security
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `security-audit` | Security vulnerability scanner | OWASP Top 10 checks, CVE scanning |
+
+### 🚀 DevOps
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `docker-builder` | Docker configuration generator | Multi-stage builds, optimization |
+| `ci-pipeline` | CI/CD pipeline generator | GitHub Actions, GitLab CI, Jenkins |
+| `microservice-scaffold` | Microservice architecture | Service boundaries, API gateway |
+
+### 🔌 API
+| Template | Description | Use Case |
+|----------|-------------|----------|
 | `api-designer` | RESTful API design | Endpoint structure, OpenAPI specs |
+| `api-mocker` | Mock API servers | Testing with realistic data |
+| `graphql-schema` | GraphQL schema generator | Types, resolvers, subscriptions |
+| `webhook-manager` | Webhook integration | Signature verification, retries |
+
+### 📈 Data
+| Template | Description | Use Case |
+|----------|-------------|----------|
 | `database-optimizer` | Query optimization | Indexes, N+1 detection |
+| `data-pipeline` | ETL/data processing | Batch, streaming, data lakes |
+
+### 📚 Documentation
+| Template | Description | Use Case |
+|----------|-------------|----------|
 | `doc-writer` | Documentation generator | README, API docs, changelog |
+
+### 🔄 Migration
+| Template | Description | Use Case |
+|----------|-------------|----------|
 | `migration-assistant` | Code migration | Python 2→3, React hooks, DB |
+
+### ⚡ Performance
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `performance-profiler` | Performance optimization | CPU, memory, algorithm analysis |
+
+### 🏗️ Architecture
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `state-machine` | Finite state machines | State diagrams, transitions |
+| `cli-builder` | CLI tool generator | Commands, parsing, completion |
+
+### 🔧 Utilities
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `regex-builder` | Regular expression builder | Patterns, testing, documentation |
 
 **Quick start with templates:**
 ```bash
-# List all templates
+# List all templates by category
 skillforge templates list
 
 # Create a skill from template
 skillforge templates use code-review
 
+# Create in specific directory
+skillforge templates use security-audit --dir ./my-skills
+
 # Inspect template content
-skillforge templates inspect security-audit
+skillforge templates inspect api-designer
 ```
 
 ---
@@ -885,6 +1057,34 @@ skillforge mcp code-review
 1. Run `skillforge mcp your-skill`
 2. Copy the output to Claude Desktop's config
 3. Restart Claude Desktop
+
+---
+
+## Quality Scoring
+
+Every skill gets a **quality score** across 4 dimensions:
+
+```bash
+# Score a skill
+skillforge score .
+
+# Output:
+# ┌────────────────────┬─────────┬────────┐
+# │ Dimension          │ Score   │ Grade  │
+# ├────────────────────┼─────────┼────────┤
+# │ Overall            │ 87.5/100│ 🥇 A   │
+# │ Metadata           │ 90.0    │ A      │
+# │ Documentation      │ 85.0    │ B+     │
+# │ Structure          │ 100.0   │ A+     │
+# │ Completeness       │ 75.0    │ B+     │
+# └────────────────────┴─────────┴────────┘
+```
+
+**Scoring Dimensions:**
+- **Metadata** — Name, version, author, tags, dependencies
+- **Documentation** — Instructions, examples, clarity
+- **Structure** — Required fields, organization
+- **Completeness** — Optional fields, homepage, repository
 
 ---
 

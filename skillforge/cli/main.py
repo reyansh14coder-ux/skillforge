@@ -933,5 +933,319 @@ def doctor() -> None:
         )
 
 
+@cli.command()
+@click.argument("path", default=".")
+def score(path: str) -> None:
+    """Calculate quality score for a skill."""
+    from skillforge.quality.scorer import SkillScorer
+
+    loader = get_loader()
+    try:
+        skill = loader.load(Path(path))
+    except Exception as e:
+        console.print(f"[red]Failed to load skill:[/red] {e}")
+        return
+
+    scorer = SkillScorer()
+    data = {
+        "name": skill.metadata.name,
+        "version": str(skill.metadata.version),
+        "description": skill.metadata.description,
+        "author": skill.metadata.author,
+        "framework": skill.metadata.framework.value if skill.metadata.framework else "",
+        "capability": skill.metadata.capability.value if skill.metadata.capability else "",
+        "tags": skill.metadata.tags or [],
+        "content": skill.content,
+    }
+
+    result = scorer.score(data)
+    grade = scorer.get_grade(result.overall)
+    badge = scorer.get_badge(result.overall)
+
+    table = Table(title=f"Quality Score: {skill.metadata.name}")
+    table.add_column("Dimension", style="cyan")
+    table.add_column("Score")
+    table.add_column("Grade")
+
+    table.add_row("Overall", f"{result.overall:.1f}/100", f"{badge} {grade}")
+    table.add_row("Metadata", f"{result.metadata:.1f}", scorer.get_grade(result.metadata))
+    doc_grade = scorer.get_grade(result.documentation)
+    table.add_row("Documentation", f"{result.documentation:.1f}", doc_grade)
+    table.add_row("Structure", f"{result.structure:.1f}", scorer.get_grade(result.structure))
+    comp_grade = scorer.get_grade(result.completeness)
+    table.add_row("Completeness", f"{result.completeness:.1f}", comp_grade)
+
+    console.print(table)
+
+    if result.issues:
+        console.print("\n[bold red]Issues:[/bold red]")
+        for issue in result.issues:
+            console.print(f"  [red]✗[/red] {issue}")
+
+    if result.suggestions:
+        console.print("\n[bold yellow]Suggestions:[/bold yellow]")
+        for s in result.suggestions:
+            console.print(f"  [yellow]→[/yellow] {s}")
+
+
+@cli.command()
+@click.argument("path", default=".")
+def changelog(path: str) -> None:
+    """Generate a changelog for a skill."""
+    loader = get_loader()
+    try:
+        skill = loader.load(Path(path))
+    except Exception as e:
+        console.print(f"[red]Failed to load skill:[/red] {e}")
+        return
+
+    lines = [
+        f"# Changelog for {skill.metadata.name}",
+        "",
+        f"## [{skill.metadata.version}] - {__import__('datetime').date.today().isoformat()}",
+        "",
+        "### Added",
+        "- Initial release",
+        "",
+        "### Features",
+        f"- {skill.metadata.description}",
+        "",
+    ]
+
+    if skill.metadata.tags:
+        lines.append("### Tags")
+        for tag in skill.metadata.tags:
+            lines.append(f"- {tag}")
+        lines.append("")
+
+    output = "\n".join(lines)
+    changelog_file = Path(path) / "CHANGELOG.md"
+    changelog_file.write_text(output, encoding="utf-8")
+    console.print(f"[green]Changelog generated:[/green] {changelog_file}")
+
+
+@cli.command()
+@click.argument("path", default=".")
+@click.option("--output", "-o", default="SKILL.md", help="Output file")
+def docs(path: str, output: str) -> None:
+    """Generate documentation for a skill."""
+    loader = get_loader()
+    try:
+        skill = loader.load(Path(path))
+    except Exception as e:
+        console.print(f"[red]Failed to load skill:[/red] {e}")
+        return
+
+    framework = (
+        skill.metadata.framework.value
+        if skill.metadata.framework else "universal"
+    )
+
+    lines = [
+        f"# {skill.metadata.name}",
+        "",
+        f"**Version:** {skill.metadata.version}",
+        f"**Author:** {skill.metadata.author}",
+        f"**Framework:** {framework}",
+        "",
+        "## Description",
+        "",
+        skill.metadata.description,
+        "",
+    ]
+
+    if skill.metadata.tags:
+        lines.append("## Tags")
+        lines.append("")
+        for tag in skill.metadata.tags:
+            lines.append(f"- `{tag}`")
+        lines.append("")
+
+    if skill.content and "instructions" in skill.content:
+        lines.append("## Instructions")
+        lines.append("")
+        lines.append(skill.content["instructions"])
+        lines.append("")
+
+    if skill.dependencies:
+        lines.append("## Dependencies")
+        lines.append("")
+        for dep in skill.dependencies:
+            lines.append(f"- `{dep.name}` {dep.version_constraint}")
+        lines.append("")
+
+    lines.extend([
+        "## Installation",
+        "",
+        "```bash",
+        f"skillforge install {skill.metadata.name}",
+        "```",
+        "",
+        "## Usage",
+        "",
+        "```python",
+        "from skillforge import SkillForge",
+        "",
+        "sf = SkillForge()",
+        f'skill = sf.get("{skill.metadata.name}")',
+        "```",
+        "",
+    ])
+
+    output_file = Path(path) / output
+    output_file.write_text("\n".join(lines), encoding="utf-8")
+    console.print(f"[green]Documentation generated:[/green] {output_file}")
+
+
+@cli.command()
+@click.argument("path", default=".")
+def recommend(path: str) -> None:
+    """Get skill recommendations based on current skill."""
+    loader = get_loader()
+    try:
+        skill = loader.load(Path(path))
+    except Exception as e:
+        console.print(f"[red]Failed to load skill:[/red] {e}")
+        return
+
+    from skillforge.templates.registry import TEMPLATES
+
+    recommendations = []
+    current_tags = set(skill.metadata.tags or [])
+    current_framework = skill.metadata.framework.value if skill.metadata.framework else "universal"
+
+    for name, template in TEMPLATES.items():
+        if name == skill.metadata.name:
+            continue
+
+        score = 0
+        if template.get("framework") == current_framework:
+            score += 2
+
+        if current_tags and any(t in (template.get("tags", []) or []) for t in current_tags):
+            score += 1
+
+        if score > 0:
+            recommendations.append((name, template.get("description", ""), score))
+
+    recommendations.sort(key=lambda x: x[2], reverse=True)
+
+    if not recommendations:
+        console.print("[yellow]No recommendations found[/yellow]")
+        return
+
+    table = Table(title="Recommended Skills")
+    table.add_column("Name", style="cyan")
+    table.add_column("Description")
+    table.add_column("Relevance")
+
+    for name, desc, score in recommendations[:5]:
+        relevance = "⭐" * min(score, 3)
+        table.add_row(name, desc[:50], relevance)
+
+    console.print(table)
+
+
+@cli.command()
+@click.argument("path", default=".")
+@click.option("--output", "-o", default=None, help="Output file")
+def compress(path: str, output: str | None) -> None:
+    """Compress a skill into a minimal bundle."""
+    import base64
+    import json
+
+    loader = get_loader()
+    try:
+        skill = loader.load(Path(path))
+    except Exception as e:
+        console.print(f"[red]Failed to load skill:[/red] {e}")
+        return
+
+    bundle = {
+        "name": skill.metadata.name,
+        "version": str(skill.metadata.version),
+        "description": skill.metadata.description,
+        "author": skill.metadata.author,
+        "content": skill.content,
+    }
+
+    compressed = base64.b64encode(json.dumps(bundle).encode()).decode()
+
+    output_file = output or f"{skill.metadata.name}.bundle"
+    Path(output_file).write_text(compressed, encoding="utf-8")
+    console.print(f"[green]Skill compressed:[/green] {output_file}")
+
+
+@cli.command()
+@click.argument("bundle_file")
+@click.option("--output", "-o", default=".", help="Output directory")
+def decompress(bundle_file: str, output: str) -> None:
+    """Decompress a skill bundle."""
+    import base64
+    import json
+
+    compressed = Path(bundle_file).read_text(encoding="utf-8")
+    data = json.loads(base64.b64decode(compressed.encode()))
+
+    out_dir = Path(output)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    import yaml
+
+    skillforge_yaml = {
+        "name": data["name"],
+        "version": data["version"],
+        "description": data["description"],
+        "author": data["author"],
+    }
+    (out_dir / "skillforge.yaml").write_text(
+        yaml.dump(skillforge_yaml, default_flow_style=False), encoding="utf-8"
+    )
+
+    if data.get("content"):
+        content = data["content"]
+        if "instructions" in content:
+            (out_dir / "SKILL.md").write_text(
+                f"# {data['name']}\n\n{content['instructions']}", encoding="utf-8"
+            )
+
+    console.print(f"[green]Skill decompressed to:[/green] {output}")
+
+
+@cli.command()
+@click.argument("path", default=".")
+def inspect(path: str) -> None:
+    """Deep inspect a skill with detailed analysis."""
+    loader = get_loader()
+    try:
+        skill = loader.load(Path(path))
+    except Exception as e:
+        console.print(f"[red]Failed to load skill:[/red] {e}")
+        return
+
+    framework_val = skill.metadata.framework.value
+    cap_val = skill.metadata.capability.value
+    fw_display = framework_val if skill.metadata.framework else 'universal'
+    cap_display = cap_val if skill.metadata.capability else 'tool'
+
+    panel_content = f"""[bold cyan]{skill.metadata.name}[/bold cyan] v{skill.metadata.version}
+
+[bold]Author:[/bold] {skill.metadata.author}
+[bold]Framework:[/bold] {fw_display}
+[bold]Capability:[/bold] {cap_display}
+[bold]Tags:[/bold] {', '.join(skill.metadata.tags or ['none'])}
+[bold]Dependencies:[/bold] {len(skill.dependencies)}
+
+[bold]Fingerprint:[/bold] {skill.fingerprint[:16]}...
+[bold]Full Name:[/bold] {skill.full_name}
+"""
+
+    if skill.content:
+        content_size = len(str(skill.content))
+        panel_content += f"\n[bold]Content Size:[/bold] {content_size} bytes"
+
+    console.print(Panel(panel_content, title="Skill Inspector", border_style="blue"))
+
+
 if __name__ == "__main__":
     cli()

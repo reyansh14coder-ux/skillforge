@@ -196,6 +196,318 @@ For each issue found:
         "capability": "tool",
         "framework": "universal",
     },
+    "performance-profiler": {
+        "name": "performance-profiler",
+        "description": "Profile and optimize code performance",
+        "instructions": """# Performance Profiler Skill
+
+## Steps
+1. Identify performance bottlenecks
+2. Profile CPU and memory usage
+3. Analyze algorithm complexity
+4. Optimize hot paths
+5. Benchmark before/after
+
+## Key Metrics
+- Execution time
+- Memory allocation
+- I/O operations
+- CPU utilization
+- Cache hit rate
+
+## Optimization Techniques
+- Memoization
+- Lazy loading
+- Batch processing
+- Parallel execution
+- Connection pooling
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "api-mocker": {
+        "name": "api-mocker",
+        "description": "Generate mock API servers for testing",
+        "instructions": """# API Mocker Skill
+
+## Steps
+1. Analyze API specification
+2. Generate mock endpoints
+3. Create realistic test data
+4. Add delay simulation
+5. Support error scenarios
+
+## Features
+- RESTful endpoint mocking
+- OpenAPI/Swagger support
+- Request/response recording
+- Stateful mocking
+- CORS support
+- Rate limiting simulation
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "docker-builder": {
+        "name": "docker-builder",
+        "description": "Generate optimized Docker configurations",
+        "instructions": """# Docker Builder Skill
+
+## Steps
+1. Analyze project structure
+2. Detect language/framework
+3. Generate multi-stage Dockerfile
+4. Create docker-compose.yml
+5. Optimize image size
+
+## Best Practices
+- Multi-stage builds
+- Layer caching
+- Non-root user
+- Health checks
+- Secret management
+- Minimal base images
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "ci-pipeline": {
+        "name": "ci-pipeline",
+        "description": "Generate CI/CD pipeline configurations",
+        "instructions": """# CI Pipeline Skill
+
+## Steps
+1. Detect project type
+2. Generate GitHub Actions workflow
+3. Add test automation
+4. Configure deployment
+5. Set up notifications
+
+## Supported Platforms
+- GitHub Actions
+- GitLab CI
+- CircleCI
+- Travis CI
+- Jenkins
+- Azure DevOps
+
+## Pipeline Stages
+- Build
+- Test
+- Lint
+- Security scan
+- Deploy
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "graphql-schema": {
+        "name": "graphql-schema",
+        "description": "Generate GraphQL schemas from requirements",
+        "instructions": """# GraphQL Schema Skill
+
+## Steps
+1. Analyze data requirements
+2. Design type system
+3. Generate resolvers
+4. Add subscriptions
+5. Create documentation
+
+## Schema Components
+- Types and interfaces
+- Queries and mutations
+- Subscriptions
+- Enums and scalars
+- Input types
+- Directives
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "microservice-scaffold": {
+        "name": "microservice-scaffold",
+        "description": "Scaffold microservice architecture",
+        "instructions": """# Microservice Scaffold Skill
+
+## Steps
+1. Design service boundaries
+2. Generate service templates
+3. Set up API gateway
+4. Configure service discovery
+5. Add monitoring
+
+## Components
+- Service skeleton
+- API gateway config
+- Database per service
+- Event bus integration
+- Circuit breaker
+- Distributed tracing
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "data-pipeline": {
+        "name": "data-pipeline",
+        "description": "Build ETL and data processing pipelines",
+        "instructions": """# Data Pipeline Skill
+
+## Steps
+1. Define data sources
+2. Design transformation logic
+3. Implement extraction
+4. Add validation
+5. Configure loading
+
+## Pipeline Types
+- Batch processing
+- Real-time streaming
+- ETL/ELT
+- Data lake ingestion
+- Data warehouse sync
+
+## Quality Checks
+- Schema validation
+- Data completeness
+- Duplicate detection
+- Anomaly detection
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "state-machine": {
+        "name": "state-machine",
+        "description": "Generate finite state machines from specs",
+        "instructions": """# State Machine Skill
+
+## Steps
+1. Identify states and transitions
+2. Define guards and actions
+3. Generate state machine code
+4. Add visualization
+5. Create tests
+
+## Features
+- State diagrams
+- Transition tables
+- Guard conditions
+- Entry/exit actions
+- History states
+- Parallel states
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "regex-builder": {
+        "name": "regex-builder",
+        "description": "Build and test regular expressions",
+        "instructions": """# Regex Builder Skill
+
+## Steps
+1. Analyze input patterns
+2. Build regex expression
+3. Add test cases
+4. Optimize performance
+5. Generate documentation
+
+## Pattern Types
+- Email validation
+- Phone numbers
+- URLs
+- Dates
+- Credit cards
+- Custom patterns
+
+## Output
+- Regex pattern
+- Test cases
+- Performance metrics
+- Edge cases
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "cli-builder": {
+        "name": "cli-builder",
+        "description": "Generate CLI tools with proper structure",
+        "instructions": """# CLI Builder Skill
+
+## Steps
+1. Define command structure
+2. Generate argument parsing
+3. Add help text
+4. Implement completion
+5. Create documentation
+
+## Features
+- Subcommands
+- Option groups
+- Interactive mode
+- Shell completion
+- Color output
+- Progress bars
+
+## Output Formats
+- Python (click/argparse)
+- Node.js (commander/yargs)
+- Go (cobra)
+- Rust (clap)
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
+    "webhook-manager": {
+        "name": "webhook-manager",
+        "description": "Manage and process webhook integrations",
+        "instructions": """# Webhook Manager Skill
+
+## Steps
+1. Define webhook endpoints
+2. Add signature verification
+3. Implement retry logic
+4. Create payload validation
+5. Set up monitoring
+
+## Features
+- Signature verification (HMAC)
+- Retry with exponential backoff
+- Payload validation
+- Rate limiting
+- Logging and auditing
+- Dead letter queue
+
+## Integrations
+- GitHub
+- Stripe
+- Slack
+- Discord
+- Custom webhooks
+""",
+        "version": "0.1.0",
+        "author": "skillforge",
+        "capability": "tool",
+        "framework": "universal",
+    },
 }
 
 
@@ -218,3 +530,20 @@ def get_template_details(name: str) -> dict | None:
             "capability": t["capability"],
         }
     return None
+
+
+def get_template_categories() -> dict[str, list[str]]:
+    """Group templates by category."""
+    categories = {
+        "Code Quality": ["code-review", "refactor-assistant", "test-generator"],
+        "Security": ["security-audit"],
+        "DevOps": ["docker-builder", "ci-pipeline", "microservice-scaffold"],
+        "API": ["api-designer", "api-mocker", "graphql-schema", "webhook-manager"],
+        "Data": ["database-optimizer", "data-pipeline"],
+        "Documentation": ["doc-writer"],
+        "Migration": ["migration-assistant"],
+        "Performance": ["performance-profiler"],
+        "Architecture": ["state-machine", "cli-builder"],
+        "Utilities": ["regex-builder"],
+    }
+    return categories
