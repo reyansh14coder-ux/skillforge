@@ -214,14 +214,14 @@ class SkillScorer:
             return "F"
 
     def get_badge(self, score: float) -> str:
-        """Get badge emoji for score."""
+        """Get badge text for score."""
         if score >= 90:
-            return "🏆"
+            return "[GOLD]"
         elif score >= 80:
-            return "🥇"
+            return "[SILVER]"
         elif score >= 70:
-            return "🥈"
+            return "[BRONZE]"
         elif score >= 60:
-            return "🥉"
+            return "[PASS]"
         else:
-            return "📋"
+            return "[NEW]"

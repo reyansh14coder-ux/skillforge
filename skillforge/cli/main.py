@@ -747,7 +747,7 @@ def templates_list() -> None:
 
 @templates.command("use")
 @click.argument("template_name")
-@click.option("--dir", "-d", default=".", help="Directory to create skill in")
+@click.option("--target-dir", "-d", default=".", help="Directory to create skill in")
 def templates_use(template_name: str, target_dir: str) -> None:
     """Create a new skill from a template."""
     from skillforge.templates.registry import get_template
@@ -1067,10 +1067,10 @@ def docs(path: str, output: str) -> None:
         lines.append(skill.content["instructions"])
         lines.append("")
 
-    if skill.dependencies:
+    if skill.metadata.dependencies:
         lines.append("## Dependencies")
         lines.append("")
-        for dep in skill.dependencies:
+        for dep in skill.metadata.dependencies:
             lines.append(f"- `{dep.name}` {dep.version_constraint}")
         lines.append("")
 
@@ -1140,7 +1140,7 @@ def recommend(path: str) -> None:
     table.add_column("Relevance")
 
     for name, desc, score in recommendations[:5]:
-        relevance = "⭐" * min(score, 3)
+        relevance = "*" * min(score, 3)
         table.add_row(name, desc[:50], relevance)
 
     console.print(table)
@@ -1234,7 +1234,7 @@ def inspect(path: str) -> None:
 [bold]Framework:[/bold] {fw_display}
 [bold]Capability:[/bold] {cap_display}
 [bold]Tags:[/bold] {', '.join(skill.metadata.tags or ['none'])}
-[bold]Dependencies:[/bold] {len(skill.dependencies)}
+[bold]Dependencies:[/bold] {len(skill.metadata.dependencies or [])}
 
 [bold]Fingerprint:[/bold] {skill.fingerprint[:16]}...
 [bold]Full Name:[/bold] {skill.full_name}

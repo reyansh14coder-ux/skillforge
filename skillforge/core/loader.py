@@ -67,6 +67,12 @@ class SkillLoader:
 
         raise SkillLoadError(f"No skill configuration found in {directory}")
 
+    def load(self, path: Path) -> Skill:
+        """Load a skill from a file or directory."""
+        if path.is_dir():
+            return self.load_from_directory(path)
+        return self.load_from_file(path)
+
     def load_from_skill_md(self, content: str) -> Skill:
         """Parse a SKILL.md file into a Skill object."""
         return self._parse_skill_md(content)
