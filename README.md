@@ -5,28 +5,46 @@
 [![CI](https://github.com/reyansh14coder-ux/skillforge/actions/workflows/ci.yml/badge.svg)](https://github.com/reyansh14coder-ux/skillforge/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen.svg)](https://github.com/reyansh14coder-ux/skillforge)
+[![Tests](https://img.shields.io/badge/tests-49%20passing-brightgreen.svg)](https://github.com/reyansh14coder-ux/skillforge)
+[![Downloads](https://img.shields.io/badge/download-pip%20install%20skillforge-ff69b4.svg)](https://pypi.org/project/skillforge/)
+[![MCP Ready](https://img.shields.io/badge/MCP-ready-7c3aed.svg)](https://modelcontextprotocol.io)
+[![Skills](https://img.shields.io/badge/skills-8%20built--in-orange.svg)](https://github.com/reyansh14coder-ux/skillforge)
 
 ---
 
 ## Table of Contents
 
+- [Why SkillForge?](#why-skillforge)
 - [What is SkillForge?](#what-is-skillforge)
 - [The Problem](#the-problem)
 - [The Solution](#the-solution)
-- [Architecture](#architecture)
+- [Features](#features)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [CLI Reference](#cli-reference)
+- [Built-in Templates](#built-in-templates)
 - [Skill Format Specification](#skill-format-specification)
 - [Examples](#examples)
 - [Composition Engine](#composition-engine)
-- [Dependency Resolution](#dependency-resolution)
-- [Sandbox Testing](#sandbox-testing)
+- [MCP Integration](#mcp-integration)
 - [Python API](#python-api)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
 - [License](#license)
+
+---
+
+## Why SkillForge?
+
+> "Every developer is building AI agent skills, but there's no npm for them. Until now."
+
+- **49 tests passing** — battle-tested and reliable
+- **8 built-in templates** — code review, security audit, test generation, and more
+- **MCP integration** — generate MCP configs for any skill
+- **Cross-framework** — works with Claude Code, Codex, Cursor, Cline, OpenCode
+- **Dependency resolution** — like npm, but for AI skills
+- **Composition engine** — chain, parallel, or DAG-orchestrate skills
+- **17+ CLI commands** — full control from your terminal
 
 ---
 
@@ -649,6 +667,224 @@ skillforge list
 Options:
   --help    Show this message and exit
 ```
+
+### `skillforge batch`
+
+Install multiple skills at once.
+
+```bash
+skillforge batch [NAMES]...
+
+Arguments:
+  NAMES    Space-separated list of skill names to install
+```
+
+**Examples:**
+```bash
+skillforge batch code-review security-audit test-generator
+```
+
+### `skillforge templates list`
+
+List all available skill templates.
+
+```bash
+skillforge templates list
+```
+
+**Output:**
+```
+Available Templates
+┌──────────────────────┬──────────────────────────────────────────┬─────────┐
+│ Name                 │ Description                              │ Version │
+├──────────────────────┼──────────────────────────────────────────┼─────────┤
+│ code-review          │ Automated code review with security...  │ 0.1.0   │
+│ security-audit       │ Security audit for code and dependencies│ 0.1.0   │
+│ test-generator       │ Generate comprehensive test suites       │ 0.1.0   │
+│ refactor-assistant   │ Code refactoring with safety checks      │ 0.1.0   │
+│ api-designer         │ RESTful API design and documentation     │ 0.1.0   │
+│ database-optimizer   │ Database query optimization and indexing │ 0.1.0   │
+│ doc-writer           │ Generate comprehensive documentation     │ 0.1.0   │
+│ migration-assistant  │ Code migration and upgrade assistance    │ 0.1.0   │
+└──────────────────────┴──────────────────────────────────────────┴─────────┘
+```
+
+### `skillforge templates use`
+
+Create a new skill from a template.
+
+```bash
+skillforge templates use [TEMPLATE_NAME] [OPTIONS]
+
+Options:
+  --dir, -d TEXT    Directory to create skill in (default: current)
+```
+
+**Examples:**
+```bash
+skillforge templates use code-review
+skillforge templates use security-audit --dir ./my-skills
+```
+
+### `skillforge pack`
+
+Bundle multiple skills into a distributable pack.
+
+```bash
+skillforge pack [NAMES]...
+
+Arguments:
+  NAMES    Space-separated list of skill names to pack
+```
+
+**Examples:**
+```bash
+skillforge pack code-review security-audit
+# Creates skill-pack.json with all skills bundled
+```
+
+### `skillforge unpack`
+
+Unbundle a skill pack.
+
+```bash
+skillforge unpack [PACK_FILE]
+
+Arguments:
+  PACK_FILE    Path to the skill-pack.json file
+```
+
+**Examples:**
+```bash
+skillforge unpack skill-pack.json
+```
+
+### `skillforge convert`
+
+Convert a skill to another framework format.
+
+```bash
+skillforge convert [SKILL_NAME] [OPTIONS]
+
+Options:
+  --to, -t TEXT    Target format: claude, cursor, cline
+```
+
+**Examples:**
+```bash
+skillforge convert code-review --to claude    # Creates SKILL.md
+skillforge convert code-review --to cursor    # Creates .cursorrules
+skillforge convert code-review --to cline     # Creates .clinerules
+```
+
+### `skillforge updates`
+
+Check for skill updates.
+
+```bash
+skillforge updates
+
+Options:
+  --all, -a    Show all available skills with versions
+```
+
+### `skillforge history`
+
+Show version history of a skill.
+
+```bash
+skillforge history [SKILL_NAME]
+
+Arguments:
+  SKILL_NAME    Name of the skill to check history for
+```
+
+### `skillforge mcp`
+
+Generate MCP server config for a skill.
+
+```bash
+skillforge mcp [SKILL_NAME] [OPTIONS]
+
+Options:
+  --output, -o TEXT    Output file (default: mcp-servers.json)
+```
+
+**Examples:**
+```bash
+skillforge mcp code-review
+# Creates mcp-servers.json for Claude Desktop integration
+```
+
+### `skillforge doctor`
+
+Check SkillForge installation and dependencies.
+
+```bash
+skillforge doctor
+
+Options:
+  --help    Show this message and exit
+```
+
+---
+
+## Built-in Templates
+
+SkillForge comes with **8 production-ready templates** to scaffold your skills:
+
+| Template | Description | Use Case |
+|----------|-------------|----------|
+| `code-review` | Automated code review | Review PRs for bugs and security |
+| `security-audit` | Security vulnerability scanner | OWASP Top 10 checks, CVE scanning |
+| `test-generator` | Generate comprehensive tests | Unit, integration, edge cases |
+| `refactor-assistant` | Safe code refactoring | Code smells, anti-patterns |
+| `api-designer` | RESTful API design | Endpoint structure, OpenAPI specs |
+| `database-optimizer` | Query optimization | Indexes, N+1 detection |
+| `doc-writer` | Documentation generator | README, API docs, changelog |
+| `migration-assistant` | Code migration | Python 2→3, React hooks, DB |
+
+**Quick start with templates:**
+```bash
+# List all templates
+skillforge templates list
+
+# Create a skill from template
+skillforge templates use code-review
+
+# Inspect template content
+skillforge templates inspect security-audit
+```
+
+---
+
+## MCP Integration
+
+SkillForge generates **MCP (Model Context Protocol) configs** for any skill, making it easy to integrate with Claude Desktop, Cursor, and other MCP-compatible tools.
+
+```bash
+# Generate MCP config for a skill
+skillforge mcp code-review
+
+# Output: mcp-servers.json
+```
+
+**Generated config:**
+```json
+{
+  "name": "code-review",
+  "description": "Automated code review",
+  "type": "stdio",
+  "command": "skillforge",
+  "args": ["test", ".", "--json"],
+  "env": {"SKILL_NAME": "code-review"}
+}
+```
+
+**Use with Claude Desktop:**
+1. Run `skillforge mcp your-skill`
+2. Copy the output to Claude Desktop's config
+3. Restart Claude Desktop
 
 ---
 

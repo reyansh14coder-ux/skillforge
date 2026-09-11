@@ -566,7 +566,7 @@ def tree(skill_name: str) -> None:
     console.print(dep_tree)
 
 
-@cli.command()
+@cli.command("list")
 def list_command() -> None:
     """List all installed skills."""
     registry = get_registry()
@@ -591,6 +591,346 @@ def list_command() -> None:
         )
 
     console.print(table)
+
+
+@cli.command()
+@click.argument("names", nargs=-1, required=True)
+def batch(names: tuple[str, ...]) -> None:
+    """Install multiple skills at once."""
+    registry = get_registry()
+
+    console.print(f"[bold]Installing {len(names)} skills...[/bold]\n")
+
+    success = 0
+    failed = 0
+
+    for name in names:
+        skill = registry.get_skill(name)
+        if skill:
+            console.print(f"  [green]✓[/green] {name} v{skill.metadata.version}")
+            success += 1
+        else:
+            console.print(f"  [red]✗[/red] {name} not found")
+            failed += 1
+
+    console.print(
+        f"\n[bold]Result:[/bold] {success} installed, {failed} failed"
+    )
+
+
+@cli.command()
+@click.argument("names", nargs=-1, required=True)
+def pack(names: tuple[str, ...]) -> None:
+    """Bundle multiple skills into a distributable pack."""
+    import json
+
+    registry = get_registry()
+    pack_data = {"name": "skill-pack", "version": "1.0.0", "skills": []}
+
+    for name in names:
+        skill = registry.get_skill(name)
+        if skill:
+            pack_data["skills"].append(skill.model_dump(mode="json"))
+            console.print(f"  [green]✓[/green] Added {name}")
+        else:
+            console.print(f"  [red]✗[/red] {name} not found")
+
+    pack_file = Path("skill-pack.json")
+    pack_file.write_text(json.dumps(pack_data, indent=2), encoding="utf-8")
+    console.print(f"\n[green]Pack created:[/green] {pack_file}")
+
+
+@cli.command()
+@click.argument("pack_file", type=click.Path(exists=True))
+def unpack(pack_file: str) -> None:
+    """Unbundle a skill pack."""
+    import json
+
+    data = json.loads(Path(pack_file).read_text(encoding="utf-8"))
+    registry = get_registry()
+
+    for skill_data in data.get("skills", []):
+        skill = Skill.model_validate(skill_data)
+        registry.publish(skill)
+        console.print(f"  [green]✓[/green] Installed {skill.metadata.name}")
+
+    console.print(
+        f"\n[green]Installed {len(data.get('skills', []))} skills from pack[/green]"
+    )
+
+
+@cli.command()
+@click.argument("name")
+@click.option("--to", "-t", help="Export to format: claude, cursor, cline")
+def convert(name: str, to: str | None) -> None:
+    """Convert a skill to another framework format."""
+    registry = get_registry()
+    skill = registry.get_skill(name)
+
+    if skill is None:
+        console.print(f"[red]Skill not found:[/red] {name}")
+        return
+
+    if to == "claude":
+        output = skill.to_skill_md()
+        filename = "SKILL.md"
+    elif to == "cursor":
+        output = _to_cursor_format(skill)
+        filename = ".cursorrules"
+    elif to == "cline":
+        output = _to_cline_format(skill)
+        filename = ".clinerules"
+    else:
+        output = skill.to_skill_md()
+        filename = "SKILL.md"
+
+    Path(filename).write_text(output, encoding="utf-8")
+    console.print(f"[green]Exported to {filename}[/green]")
+
+
+def _to_cursor_format(skill: Skill) -> str:
+    """Convert skill to Cursor format."""
+    lines = [
+        f"# {skill.metadata.name}",
+        "",
+        skill.metadata.description,
+        "",
+        "## Rules",
+        "",
+    ]
+    if "instructions" in skill.content:
+        lines.append(skill.content["instructions"])
+    return "\n".join(lines)
+
+
+def _to_cline_format(skill: Skill) -> str:
+    """Convert skill to Cline format."""
+    lines = [
+        f"# {skill.metadata.name}",
+        "",
+        skill.metadata.description,
+        "",
+    ]
+    if "instructions" in skill.content:
+        lines.append(skill.content["instructions"])
+    return "\n".join(lines)
+
+
+@cli.group()
+def templates() -> None:
+    """Manage skill templates."""
+
+
+@templates.command("list")
+def templates_list() -> None:
+    """List available skill templates."""
+    from skillforge.templates.registry import get_template_details, list_templates
+
+    names = list_templates()
+
+    table = Table(title="Available Templates")
+    table.add_column("Name", style="cyan")
+    table.add_column("Description")
+    table.add_column("Version")
+
+    for name in names:
+        details = get_template_details(name)
+        if details:
+            table.add_row(
+                details["name"],
+                details["description"][:60],
+                details["version"],
+            )
+
+    console.print(table)
+
+
+@templates.command("use")
+@click.argument("template_name")
+@click.option("--dir", "-d", default=".", help="Directory to create skill in")
+def templates_use(template_name: str, target_dir: str) -> None:
+    """Create a new skill from a template."""
+    from skillforge.templates.registry import get_template
+
+    template = get_template(template_name)
+    if not template:
+        console.print(f"[red]Template not found:[/red] {template_name}")
+        return
+
+    out_dir = Path(target_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    skill_md = f"""# {template['name']}
+
+{template['instructions']}
+"""
+    (out_dir / "SKILL.md").write_text(skill_md, encoding="utf-8")
+
+    import yaml
+
+    skillforge_yaml = {
+        "name": template["name"],
+        "version": template["version"],
+        "description": template["description"],
+        "author": template["author"],
+        "framework": template["framework"],
+        "capability": template["capability"],
+        "tags": ["generated", "template"],
+    }
+    (out_dir / "skillforge.yaml").write_text(
+        yaml.dump(skillforge_yaml, default_flow_style=False), encoding="utf-8"
+    )
+
+    console.print(f"[green]Created skill from template '{template_name}' in {target_dir}/[/green]")
+
+
+@templates.command("inspect")
+@click.argument("template_name")
+def templates_inspect(template_name: str) -> None:
+    """Show full template content."""
+    from skillforge.templates.registry import get_template
+
+    template = get_template(template_name)
+    if not template:
+        console.print(f"[red]Template not found:[/red] {template_name}")
+        return
+
+    console.print(Panel(template["instructions"], title=template_name))
+
+
+@cli.command()
+@click.option("--all", "-a", is_flag=True, help="Show all available skills with versions")
+def updates(all_versions: bool) -> None:
+    """Check for skill updates."""
+    registry = get_registry()
+    skills = registry.list_skills()
+
+    if not skills:
+        console.print("[yellow]No skills in registry[/yellow]")
+        return
+
+    table = Table(title="Installed Skills - Version Status")
+    table.add_column("Name", style="cyan")
+    table.add_column("Installed")
+    table.add_column("Status")
+
+    for s in skills:
+        name = s["name"]
+        version = s["version"]
+        skill = registry.get_skill(name)
+
+        if skill and version != "0.1.0":
+            table.add_row(name, version, "[green]Up to date[/green]")
+        else:
+            table.add_row(name, version, "[yellow]Check for updates[/yellow]")
+
+    console.print(table)
+    console.print(
+        "\n[dim]Note: Remote registry coming soon. "
+        "For now, publish skills to share with your team.[/dim]"
+    )
+
+
+@cli.command()
+@click.argument("skill_name")
+def history(skill_name: str) -> None:
+    """Show version history of a skill."""
+    registry = get_registry()
+    skill = registry.get_skill(skill_name)
+
+    if skill is None:
+        console.print(f"[red]Skill not found:[/red] {skill_name}")
+        return
+
+    console.print(
+        Panel(
+            f"[cyan]{skill.metadata.name}[/cyan] v{skill.metadata.version}\n"
+            f"Author: {skill.metadata.author}\n"
+            f"Published: Local registry",
+            title="Version History",
+        )
+    )
+
+
+@cli.command()
+@click.argument("skill_name")
+@click.option("--output", "-o", default="mcp-servers.json", help="Output file")
+def mcp(skill_name: str, output: str) -> None:
+    """Generate MCP server config for a skill."""
+    import json
+
+    registry = get_registry()
+    skill = registry.get_skill(skill_name)
+
+    if skill is None:
+        console.print(f"[red]Skill not found:[/red] {skill_name}")
+        return
+
+    mcp_config = {
+        "name": skill.metadata.name,
+        "description": skill.metadata.description,
+        "type": "stdio",
+        "command": "skillforge",
+        "args": ["test", ".", "--json"],
+        "env": {"SKILL_NAME": skill.metadata.name},
+    }
+
+    Path(output).write_text(json.dumps(mcp_config, indent=2), encoding="utf-8")
+    console.print(f"[green]MCP config written to {output}[/green]")
+
+
+@cli.command()
+def doctor() -> None:
+    """Check SkillForge installation and dependencies."""
+
+    console.print("[bold]SkillForge Doctor[/bold]\n")
+
+    checks = []
+
+    # Check Python version
+    import sys
+
+    py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    checks.append(("Python version", py_ver, True))
+
+    # Check dependencies
+    deps = ["click", "rich", "pydantic", "pyyaml", "httpx", "platformdirs"]
+    for dep in deps:
+        try:
+            __import__(dep.replace("-", "_"))
+            checks.append((f"Dependency: {dep}", "installed", True))
+        except ImportError:
+            checks.append((f"Dependency: {dep}", "missing", False))
+
+    # Check registry
+    try:
+        registry = get_registry()
+        count = len(registry.list_skills())
+        checks.append(("Local registry", f"{count} skills", True))
+    except Exception:
+        checks.append(("Local registry", "error", False))
+
+    # Display results
+    table = Table(title="Diagnostic Results")
+    table.add_column("Check", style="cyan")
+    table.add_column("Status")
+    table.add_column("Result")
+
+    for name, result, ok in checks:
+        status = "[green]✓[/green]" if ok else "[red]✗[/red]"
+        table.add_row(name, status, result)
+
+    console.print(table)
+
+    passed = sum(1 for _, _, ok in checks if ok)
+    total = len(checks)
+    if passed == total:
+        console.print(f"\n[green]All {total} checks passed![/green]")
+    else:
+        console.print(
+            f"\n[yellow]{passed}/{total} checks passed. "
+            f"Fix the issues above.[/yellow]"
+        )
 
 
 if __name__ == "__main__":

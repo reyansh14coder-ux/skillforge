@@ -534,3 +534,79 @@ class TestSkillComposition:
         plan = composition.parallel(["a"])
         output = composition.export_plan(plan, output_format="mermaid")
         assert "graph TD" in output
+
+
+# ── Template Tests ─────────────────────────────────────────────────────────────
+
+
+class TestTemplates:
+    def test_list_templates(self) -> None:
+        from skillforge.templates.registry import list_templates
+
+        templates = list_templates()
+        assert "code-review" in templates
+        assert "security-audit" in templates
+        assert "test-generator" in templates
+
+    def test_get_template(self) -> None:
+        from skillforge.templates.registry import get_template
+
+        t = get_template("code-review")
+        assert t is not None
+        assert t["name"] == "code-review"
+        assert t["description"]
+
+    def test_get_template_not_found(self) -> None:
+        from skillforge.templates.registry import get_template
+
+        t = get_template("nonexistent")
+        assert t is None
+
+    def test_get_template_details(self) -> None:
+        from skillforge.templates.registry import get_template_details
+
+        d = get_template_details("code-review")
+        assert d is not None
+        assert d["name"] == "code-review"
+        assert d["version"] == "0.1.0"
+
+    def test_template_count(self) -> None:
+        from skillforge.templates.registry import list_templates
+
+        templates = list_templates()
+        assert len(templates) >= 6
+
+
+# ── Conversion Tests ───────────────────────────────────────────────────────────
+
+
+class TestConversion:
+    def test_to_cursor_format(self) -> None:
+        from skillforge.cli.main import _to_cursor_format
+
+        skill = Skill(
+            metadata=SkillMetadata(
+                name="test-skill",
+                description="A test skill",
+                author="test",
+            ),
+            content={"instructions": "Do something useful"},
+        )
+        output = _to_cursor_format(skill)
+        assert "test-skill" in output
+        assert "Do something useful" in output
+
+    def test_to_cline_format(self) -> None:
+        from skillforge.cli.main import _to_cline_format
+
+        skill = Skill(
+            metadata=SkillMetadata(
+                name="test-skill",
+                description="A test skill",
+                author="test",
+            ),
+            content={"instructions": "Do something useful"},
+        )
+        output = _to_cline_format(skill)
+        assert "test-skill" in output
+        assert "Do something useful" in output
