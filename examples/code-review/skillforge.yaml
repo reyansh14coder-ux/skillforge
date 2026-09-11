@@ -1,0 +1,39 @@
+metadata:
+  name: code-review
+  version: 1.2.0
+  description: "AI-powered code review with bug detection, security analysis, and best practices checking"
+  author: skillforge-examples
+  framework: universal
+  capability: tool
+  tags:
+    - code-review
+    - quality
+    - best-practices
+    - pull-request
+    - security
+  dependencies:
+    - name: security-scan
+      version_constraint: ">=0.5.0"
+  homepage: "https://github.com/skillforge/skillforge"
+  repository: "https://github.com/skillforge/skillforge"
+
+config:
+  env_vars:
+    REVIEW_DEPTH: "Review depth: quick, standard, or deep (default: standard)"
+    SEVERITY_THRESHOLD: "Minimum severity to report: info, warning, error (default: warning)"
+  requires_permissions:
+    - filesystem
+    - network
+  max_execution_time_seconds: 600
+  sandbox_required: false
+
+content:
+  instructions: |
+    You are a code review assistant. Analyze code for:
+    1. Bugs and logic errors
+    2. Security vulnerabilities
+    3. Performance issues
+    4. Style violations
+    5. Documentation gaps
+    
+    Provide actionable feedback with code suggestions.

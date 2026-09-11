@@ -1,0 +1,34 @@
+metadata:
+  name: docs-generator
+  version: 0.9.0
+  description: "Automatic documentation generation from code comments, docstrings, and type hints"
+  author: skillforge-examples
+  framework: universal
+  capability: tool
+  tags:
+    - documentation
+    - docstrings
+    - api-docs
+    - markdown
+  dependencies:
+    - name: code-review
+      version_constraint: ">=1.0.0"
+  homepage: "https://github.com/skillforge/skillforge"
+
+config:
+  env_vars:
+    DOC_FORMAT: "Output format: markdown, rst, html"
+    INCLUDE_PRIVATE: "Include private functions in docs"
+  requires_permissions:
+    - filesystem
+  max_execution_time_seconds: 180
+
+content:
+  instructions: |
+    Generate documentation from code:
+    1. Parse docstrings and type hints
+    2. Generate API reference
+    3. Create architecture diagrams
+    4. Write README sections
+    
+    Support Google, NumPy, and Sphinx docstring styles.

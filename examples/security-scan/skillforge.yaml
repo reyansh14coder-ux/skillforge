@@ -1,0 +1,34 @@
+metadata:
+  name: security-scan
+  version: 0.8.0
+  description: "Comprehensive security vulnerability scanner for codebases, dependencies, and configurations"
+  author: skillforge-examples
+  framework: universal
+  capability: tool
+  tags:
+    - security
+    - vulnerability
+    - scanning
+    - dependency-audit
+    - secrets
+  dependencies: []
+  homepage: "https://github.com/skillforge/skillforge"
+
+config:
+  env_vars:
+    SCAN_TARGETS: "Comma-separated scan targets: code, deps, secrets, config"
+    FAIL_ON: "Severity level to fail on: none, low, medium, high, critical"
+  requires_permissions:
+    - filesystem
+    - network
+  max_execution_time_seconds: 300
+
+content:
+  instructions: |
+    Perform comprehensive security scanning:
+    1. Audit dependencies for CVEs
+    2. Detect hardcoded secrets
+    3. Find code vulnerabilities (SQLi, XSS, etc.)
+    4. Check configuration security
+    
+    Report findings with severity levels and fix suggestions.

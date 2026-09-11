@@ -1,0 +1,33 @@
+metadata:
+  name: auto-format
+  version: 1.0.0
+  description: "Automatic code formatting and style enforcement across Python, JavaScript, TypeScript, Go, and more"
+  author: skillforge-examples
+  framework: universal
+  capability: tool
+  tags:
+    - formatting
+    - style
+    - linting
+    - automation
+    - prettier
+  dependencies: []
+  homepage: "https://github.com/skillforge/skillforge"
+
+config:
+  env_vars:
+    FORMAT_LANGUAGES: "Comma-separated list of languages to format"
+    DRY_RUN: "If true, show changes without applying"
+  requires_permissions:
+    - filesystem
+  max_execution_time_seconds: 120
+
+content:
+  instructions: |
+    Auto-format code to match project conventions:
+    1. Detect project languages
+    2. Apply appropriate formatters
+    3. Sort imports
+    4. Fix lint issues where possible
+    
+    Generate pre-commit hooks for ongoing enforcement.

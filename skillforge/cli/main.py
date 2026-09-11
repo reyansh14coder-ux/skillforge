@@ -444,7 +444,7 @@ def compose(skills: tuple[str, ...], name: str, comp_type: str, out_format: str)
 
         analysis = composition.analyze(plan)
 
-        output = composition.export_plan(plan, format=out_format)
+        output = composition.export_plan(plan, output_format=out_format)
         console.print(output)
 
         console.print(
