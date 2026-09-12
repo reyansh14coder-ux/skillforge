@@ -135,11 +135,17 @@ class SkillSandbox:
         timeout: int = 60,
     ) -> SandboxResult:
         """Test a skill with a test command."""
+        import sys
+
         skill_dir = self.prepare(skill)
 
         if test_command:
+            if sys.platform == "win32":
+                cmd = ["cmd", "/c", test_command]
+            else:
+                cmd = ["bash", "-c", test_command]
             return self.run_command(
-                ["bash", "-c", test_command],
+                cmd,
                 cwd=skill_dir,
                 timeout=timeout,
             )

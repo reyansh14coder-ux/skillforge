@@ -273,11 +273,18 @@ class SkillComposition:
                 label = f"{step.skill_name}\\n{step.action}"
                 lines.append(f"    {step.skill_name}_{step.action} [{label}]")
                 for dep in step.depends_on:
-                    lines.append(f"    {dep}_install --> {step.skill_name}_{step.action}")
+                    dep_action = "install"
+                    for s in plan.steps:
+                        if s.skill_name == dep:
+                            dep_action = s.action
+                            break
+                    lines.append(
+                        f"    {dep}_{dep_action} --> {step.skill_name}_{step.action}"
+                    )
             return "\n".join(lines)
 
         else:
-            raise ValueError(f"Unsupported format: {format}")
+            raise ValueError(f"Unsupported format: {output_format}")
 
     def _resolve_all(self, skills: list[Skill]) -> ResolutionResult:
         """Resolve dependencies for all skills."""

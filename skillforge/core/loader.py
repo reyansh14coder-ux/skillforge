@@ -213,6 +213,8 @@ class SkillLoader:
             version = SkillVersion.parse(version_str)
         elif isinstance(version_str, dict):
             version = SkillVersion(**version_str)
+        elif isinstance(version_str, (int, float)):
+            version = SkillVersion.parse(str(version_str))
         else:
             version = SkillVersion()
 
@@ -230,7 +232,7 @@ class SkillLoader:
 
         tags = meta.get("tags", [])
         if isinstance(tags, str):
-            tags = [t.strip() for t in tags.split(",")]
+            tags = [t.strip() for t in tags.split(",") if t.strip()]
 
         dependencies: list[SkillDependency] = []
         for dep in meta.get("dependencies", []):
@@ -254,7 +256,7 @@ class SkillLoader:
         if files_dir.is_dir():
             for f in files_dir.rglob("*"):
                 if f.is_file():
-                    rel = str(f.relative_to(files_dir))
+                    rel = f.relative_to(files_dir).as_posix()
                     try:
                         files[rel] = f.read_text(encoding="utf-8")
                     except OSError:

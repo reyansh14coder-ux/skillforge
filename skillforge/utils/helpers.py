@@ -56,6 +56,7 @@ def truncate(text: str, max_length: int = 100, suffix: str = "...") -> str:
     """Truncate text to a maximum length."""
     if len(text) <= max_length:
         return text
+    max_length = max(max_length, len(suffix))
     return text[: max_length - len(suffix)] + suffix
 
 

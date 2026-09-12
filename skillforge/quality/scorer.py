@@ -135,7 +135,8 @@ class SkillScorer:
         else:
             score.issues.append("No instructions provided")
 
-        examples = data.get("examples", [])
+        content = data.get("content", {})
+        examples = content.get("examples", []) if isinstance(content, dict) else []
         if examples:
             points += 10
         else:

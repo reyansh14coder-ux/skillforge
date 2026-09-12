@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +35,7 @@ class SkillRegistry:
         return {"skills": {}, "updated_at": None}
 
     def _save_index(self) -> None:
-        self._index["updated_at"] = datetime.utcnow().isoformat()
+        self._index["updated_at"] = datetime.now(timezone.utc).isoformat()
         with open(self._index_path, "w", encoding="utf-8") as f:
             json.dump(self._index, f, indent=2)
 
@@ -50,7 +51,7 @@ class SkillRegistry:
         version_dir.mkdir(exist_ok=True)
 
         skill_data = skill.model_dump(mode="json")
-        skill_data["published_at"] = datetime.utcnow().isoformat()
+        skill_data["published_at"] = datetime.now(timezone.utc).isoformat()
 
         with open(version_dir / "skill.json", "w", encoding="utf-8") as f:
             json.dump(skill_data, f, indent=2)
@@ -196,8 +197,6 @@ class SkillRegistry:
         if version:
             version_dir = self._skills_dir / actual_id / version
             if version_dir.exists():
-                import shutil
-
                 shutil.rmtree(version_dir)
 
             versions = self._index["skills"][actual_id]["versions"]
@@ -208,16 +207,16 @@ class SkillRegistry:
                 del self._index["skills"][actual_id]
                 skill_dir = self._skills_dir / actual_id
                 if skill_dir.exists():
-                    import shutil
-
                     shutil.rmtree(skill_dir)
             else:
+                versions.sort(
+                    key=lambda v: SkillVersion.parse(v),
+                    reverse=True,
+                )
                 self._index["skills"][actual_id]["latest"] = versions[0]
         else:
             skill_dir = self._skills_dir / actual_id
             if skill_dir.exists():
-                import shutil
-
                 shutil.rmtree(skill_dir)
             del self._index["skills"][actual_id]
 

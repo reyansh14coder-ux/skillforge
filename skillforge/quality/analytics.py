@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 @dataclass
@@ -74,12 +74,19 @@ class AnalyticsTracker:
         return skills[:limit]
 
     def get_recent(self, days: int = 7) -> list[SkillAnalytics]:
-        cutoff = (datetime.now() - timedelta(days=days)).isoformat()
-        return [
-            a
-            for a in self._analytics.values()
-            if a.last_accessed and a.last_accessed > cutoff
-        ]
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        result = []
+        for a in self._analytics.values():
+            if a.last_accessed:
+                try:
+                    accessed = datetime.fromisoformat(a.last_accessed)
+                    if accessed.tzinfo is None:
+                        accessed = accessed.replace(tzinfo=timezone.utc)
+                    if accessed > cutoff:
+                        result.append(a)
+                except (ValueError, TypeError):
+                    pass
+        return result
 
     def get_summary(self) -> dict:
         all_skills = list(self._analytics.values())

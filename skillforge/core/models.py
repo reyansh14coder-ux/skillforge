@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -131,8 +131,12 @@ class SkillMetadata(BaseModel):
 
     @field_validator("tags", mode="before")
     @classmethod
-    def validate_tags(cls, v: list[str]) -> list[str]:
-        return [tag.lower().strip() for tag in v]
+    def validate_tags(cls, v: list[str] | str | None) -> list[str]:
+        if v is None:
+            return []
+        if isinstance(v, str):
+            return [tag.lower().strip() for tag in v.split(",") if tag.strip()]
+        return [tag.lower().strip() for tag in v if isinstance(tag, str) and tag.strip()]
 
 
 class SkillConfig(BaseModel):
@@ -153,13 +157,23 @@ class Skill(BaseModel):
     content: dict[str, Any] = Field(default_factory=dict)
     files: dict[str, str] = Field(default_factory=dict)
     entry_point: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
     def fingerprint(self) -> str:
         """Generate a content fingerprint for integrity checking."""
-        content_str = f"{self.metadata.name}{self.metadata.version}{self.content}"
+        import json
+
+        content_str = json.dumps(
+            {
+                "name": self.metadata.name,
+                "version": str(self.metadata.version),
+                "content": self.content,
+            },
+            sort_keys=True,
+            default=str,
+        )
         return hashlib.sha256(content_str.encode()).hexdigest()[:16]
 
     @property

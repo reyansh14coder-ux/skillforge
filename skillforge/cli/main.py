@@ -871,7 +871,7 @@ def mcp(skill_name: str, output: str) -> None:
         "description": skill.metadata.description,
         "type": "stdio",
         "command": "skillforge",
-        "args": ["test", ".", "--json"],
+        "args": ["test", "."],
         "env": {"SKILL_NAME": skill.metadata.name},
     }
 
@@ -894,7 +894,7 @@ def doctor() -> None:
     checks.append(("Python version", py_ver, True))
 
     # Check dependencies
-    deps = ["click", "rich", "pydantic", "pyyaml", "httpx", "platformdirs"]
+    deps = ["click", "rich", "pydantic", "yaml", "platformdirs"]
     for dep in deps:
         try:
             __import__(dep.replace("-", "_"))
@@ -1083,11 +1083,9 @@ def docs(path: str, output: str) -> None:
         "",
         "## Usage",
         "",
-        "```python",
-        "from skillforge import SkillForge",
-        "",
-        "sf = SkillForge()",
-        f'skill = sf.get("{skill.metadata.name}")',
+        "```bash",
+        f"skillforge info {skill.metadata.name}",
+        f"skillforge test ./{skill.metadata.name}",
         "```",
         "",
     ])

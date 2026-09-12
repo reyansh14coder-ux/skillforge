@@ -8,6 +8,7 @@ from skillforge.core.models import (
     SkillCapability,
     SkillConfig,
     SkillDependency,
+    SkillFramework,
     SkillMetadata,
     SkillVersion,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "SkillDependency",
     "SkillVersion",
     "SkillCapability",
+    "SkillFramework",
     "SkillConfig",
     "InstalledSkill",
     "CompositionPlan",

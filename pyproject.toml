@@ -38,13 +38,7 @@ dependencies = [
     "click>=8.0",
     "rich>=13.0",
     "pyyaml>=6.0",
-    "httpx>=0.24",
     "pydantic>=2.0",
-    "uvicorn>=0.23",
-    "fastapi>=0.100",
-    "sqlite-utils>=3.35",
-    "gitpython>=3.1",
-    "jsonschema>=4.17",
     "platformdirs>=3.0",
 ]
 

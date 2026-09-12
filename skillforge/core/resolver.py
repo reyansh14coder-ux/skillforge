@@ -115,7 +115,7 @@ class DependencyResolver:
         in_stack: set[str],
     ) -> SkillVersion | None:
         if name in in_stack:
-            cycle = " -> ".join(list(in_stack) + [name])
+            cycle = " -> ".join(sorted(in_stack) + [name])
             raise CircularDependencyError(f"Circular dependency detected: {cycle}")
 
         if name in visited:
@@ -174,6 +174,8 @@ class DependencyResolver:
         skills: list[Skill],
     ) -> list[Skill]:
         """Get the order in which skills should be installed (dependencies first)."""
+        from skillforge.core.resolver import CircularDependencyError
+
         graph: dict[str, list[str]] = defaultdict(list)
         in_degree: dict[str, int] = defaultdict(int)
         skill_map: dict[str, Skill] = {}
@@ -187,6 +189,8 @@ class DependencyResolver:
             for dep in skill.metadata.dependencies:
                 graph[dep.name].append(name)
                 in_degree[name] += 1
+                if dep.name not in in_degree:
+                    in_degree[dep.name] = 0
 
         queue = [name for name, degree in in_degree.items() if degree == 0]
         order: list[str] = []
@@ -200,11 +204,19 @@ class DependencyResolver:
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
 
-        if len(order) != len(skills):
-            remaining = set(skill_map.keys()) - set(order)
-            raise CircularDependencyError(
-                f"Circular dependency among: {', '.join(remaining)}"
-            )
+        if len(order) != len(in_degree):
+            missing = [n for n in in_degree if n not in skill_map]
+            remaining = set(order) - set(skill_map.keys())
+
+            if missing:
+                raise ValueError(
+                    f"Missing dependencies: {', '.join(sorted(missing))}"
+                )
+            else:
+                remaining = set(in_degree.keys()) - set(order)
+                raise CircularDependencyError(
+                    f"Circular dependency among: {', '.join(sorted(remaining))}"
+                )
 
         return [skill_map[name] for name in order if name in skill_map]
 
