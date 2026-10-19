@@ -82,6 +82,8 @@ skillforge doctor
 All 11 checks passed!
 ```
 
+![skillforge doctor](docs/screenshots/doctor.png)
+
 Requirements: Python 3.10+, Windows / macOS / Linux.
 
 ---
@@ -129,6 +131,8 @@ Created ...\SKILL.md
 │   3. Run skillforge publish . to publish to registry                        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+![skillforge init](docs/screenshots/init.png)
 
 ### 2. Check it
 
@@ -229,6 +233,10 @@ skillforge score .
 └───────────────┴──────────┴─────────────┘
 ```
 
+![skillforge validate](docs/screenshots/validate.png)
+
+![skillforge score](docs/screenshots/score.png)
+
 **56.2 (C) → 73.5 (B+)** — the scorer tells you exactly what to fix.
 
 ### 5. Publish and find it
@@ -249,6 +257,8 @@ skillforge publish .
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+![skillforge publish](docs/screenshots/publish.png)
+
 ```bash
 skillforge search pdf
 ```
@@ -262,6 +272,8 @@ skillforge search pdf
 │                │        │         │            │ into concise str           │
 └────────────────┴────────┴─────────┴────────────┴────────────────────────────┘
 ```
+
+![skillforge search](docs/screenshots/search.png)
 
 That is the whole lifecycle: **init → validate → score → improve → publish → search**.
 
@@ -296,6 +308,8 @@ That is the whole lifecycle: **init → validate → score → improve → publi
 ## Command reference
 
 All 32 commands. Each group is collapsible — click to expand.
+
+![skillforge --help](docs/screenshots/help.png)
 
 <details>
 <summary><b>Start, check and document a project</b> (9 commands)</summary>
@@ -505,6 +519,8 @@ graph TD
     greeting-app_install --> greeting-app_activate
 ```
 
+![skillforge compose](docs/screenshots/compose.png)
+
 (plus an analysis panel: total steps, skills, critical path, parallel groups)
 
 Dependency graph of one skill:
@@ -517,6 +533,8 @@ skillforge graph greeting-app
 graph TD
     greeting-app --> greeting
 ```
+
+![skillforge graph](docs/screenshots/graph.png)
 
 Dependency tree:
 
@@ -553,6 +571,8 @@ skillforge compare greeting greeting-app
 
 Winner: greeting-app
 ```
+
+![skillforge compare](docs/screenshots/compare.png)
 
 Scripting example:
 
