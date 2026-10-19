@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import os
+import sys
 from pathlib import Path
+from typing import Any
 
 import click
 from rich.console import Console
@@ -18,6 +22,32 @@ from skillforge.registry.store import SkillRegistry
 from skillforge.sandbox.executor import SkillSandbox
 
 console = Console()
+
+
+def _force_utf8() -> None:
+    """Make CLI output safe on Windows cp1252 terminals.
+
+    Without this, glyphs like ``✓`` raise UnicodeEncodeError inside rich's
+    legacy Windows renderer and crash commands such as ``doctor``.
+    """
+    if sys.platform != "win32":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8", errors="replace")
+        except (ValueError, OSError):
+            pass
+
+
+_force_utf8()
+
+
+def emit_json(data: Any) -> None:
+    """Print machine-readable output and exit successfully."""
+    click.echo(json.dumps(data, indent=2, default=str))
 
 
 def get_registry() -> SkillRegistry:
@@ -43,15 +73,36 @@ def cli() -> None:
 @click.option("--name", "-n", help="Skill name override")
 @click.option("--author", "-a", help="Author name")
 @click.option("--framework", "-f", default="universal", help="Target framework")
-def init(path: str, name: str | None, author: str | None, framework: str) -> None:
+@click.option(
+    "--template",
+    "-t",
+    "template_name",
+    default=None,
+    help="Scaffold from a built-in template instead of a blank skill",
+)
+def init(
+    path: str,
+    name: str | None,
+    author: str | None,
+    framework: str,
+    template_name: str | None,
+) -> None:
     """Initialize a new skill project."""
     from skillforge.core.models import SkillFramework
 
     dir_path = Path(path)
     skill_name = name or dir_path.name
 
+    if template_name:
+        ctx = click.get_current_context()
+        ctx.invoke(templates_use, template_name=template_name, target_dir=str(dir_path))
+        return
+
     if not author:
-        author = click.prompt("Author name")
+        if sys.stdin.isatty():
+            author = click.prompt("Author name")
+        else:
+            author = "anonymous"
 
     try:
         fw = SkillFramework(framework)
@@ -120,8 +171,9 @@ Add your skill instructions here.
 @cli.command()
 @click.argument("path", type=click.Path(exists=True), default=".")
 @click.option("--strict", is_flag=True, help="Enable strict validation")
-def validate(path: str, strict: bool) -> None:
-    """Validate a skill project."""
+@click.option("--json", "as_json", is_flag=True, help="Output results as JSON")
+def validate(path: str, strict: bool, as_json: bool) -> None:
+    """Validate a skill project. Exits non-zero when validation fails."""
     loader = get_loader()
     sandbox = SkillSandbox()
 
@@ -133,6 +185,19 @@ def validate(path: str, strict: bool) -> None:
             skill = loader.load_from_file(skill_path)
 
         result = sandbox.validate_skill(skill)
+        failed = strict and bool(result.warnings)
+
+        if as_json:
+            emit_json(
+                {
+                    "name": skill.metadata.name,
+                    "version": str(skill.metadata.version),
+                    "valid": not failed,
+                    "strict": strict,
+                    "warnings": list(result.warnings),
+                }
+            )
+            sys.exit(1 if failed else 0)
 
         table = Table(title=f"Validation: {skill.metadata.name}")
         table.add_column("Check", style="cyan")
@@ -152,15 +217,24 @@ def validate(path: str, strict: bool) -> None:
 
         console.print(table)
 
-        if strict and result.warnings:
+        if failed:
             console.print(
                 f"\n[red]Validation failed with {len(result.warnings)} warnings[/red]"
+            )
+            sys.exit(1)
+        if result.warnings:
+            console.print(
+                f"\n[yellow]Validation passed with {len(result.warnings)} warnings[/yellow]"
             )
         else:
             console.print("\n[green]Validation passed![/green]")
 
     except SkillLoadError as e:
-        console.print(f"[red]Error:[/red] {e}")
+        if as_json:
+            emit_json({"valid": False, "strict": strict, "error": str(e)})
+        else:
+            console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
 
 
 @cli.command()
@@ -196,6 +270,7 @@ def publish(path: str, version: str | None) -> None:
 
     except SkillLoadError as e:
         console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
 
 
 @cli.command()
@@ -208,7 +283,7 @@ def install(name: str, version: str | None) -> None:
     skill = registry.get_skill(name, version)
     if skill is None:
         console.print(f"[red]Skill not found:[/red] {name}")
-        return
+        sys.exit(1)
 
     resolver = registry.get_resolver()
     resolution = resolver.resolve(skill)
@@ -219,7 +294,7 @@ def install(name: str, version: str | None) -> None:
             console.print(f"  - {conflict}")
         for missing in resolution.missing:
             console.print(f"  - Missing: {missing}")
-        return
+        sys.exit(1)
 
     console.print(
         f"[green]Installed[/green] {skill.metadata.name} v{skill.metadata.version}"
@@ -234,7 +309,8 @@ def install(name: str, version: str | None) -> None:
 @cli.command()
 @click.argument("name", required=False)
 @click.option("--version", "-v", help="Specific version")
-def info(name: str | None, version: str | None) -> None:
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON")
+def info(name: str | None, version: str | None, as_json: bool) -> None:
     """Show information about a skill."""
     registry = get_registry()
 
@@ -242,6 +318,10 @@ def info(name: str | None, version: str | None) -> None:
         skill = registry.get_skill(name, version)
         if skill is None:
             console.print(f"[red]Skill not found:[/red] {name}")
+            sys.exit(1)
+
+        if as_json:
+            emit_json(skill.model_dump(mode="json"))
             return
 
         table = Table(title=f"Skill: {skill.metadata.name}")
@@ -266,6 +346,9 @@ def info(name: str | None, version: str | None) -> None:
         console.print(table)
     else:
         skills = registry.list_skills()
+        if as_json:
+            emit_json(skills)
+            return
         if not skills:
             console.print("[yellow]No skills in registry[/yellow]")
             return
@@ -293,12 +376,14 @@ def info(name: str | None, version: str | None) -> None:
 @click.option("--capability", "-c", help="Filter by capability")
 @click.option("--framework", "-f", help="Filter by framework")
 @click.option("--limit", "-l", default=20, help="Max results")
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 def search(
     query: str | None,
     tags: str | None,
     capability: str | None,
     framework: str | None,
     limit: int,
+    as_json: bool,
 ) -> None:
     """Search for skills in the registry."""
     registry = get_registry()
@@ -312,6 +397,10 @@ def search(
         framework=framework,
         limit=limit,
     )
+
+    if as_json:
+        emit_json(results)
+        return
 
     if not results:
         console.print("[yellow]No skills found[/yellow]")
@@ -355,6 +444,7 @@ def delete(name: str, version: str | None, delete_all: bool) -> None:
         console.print(f"[green]Deleted[/green] {name}" + (f" v{version}" if version else ""))
     else:
         console.print(f"[red]Not found:[/red] {name}")
+        sys.exit(1)
 
 
 @cli.command()
@@ -400,8 +490,12 @@ def test(path: str, timeout: int, command: str | None) -> None:
             for w in result.warnings:
                 console.print(f"  - {w}")
 
+        if not result.success:
+            sys.exit(1)
+
     except SkillLoadError as e:
         console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
     finally:
         sandbox.cleanup()
 
@@ -426,12 +520,14 @@ def compose(skills: tuple[str, ...], name: str, comp_type: str, out_format: str)
     """Compose multiple skills into a workflow."""
     registry = get_registry()
     composition = SkillComposition()
+    missing = 0
 
     for skill_name in skills:
         skill = registry.get_skill(skill_name)
         if skill:
             composition.register_skill(skill)
         else:
+            missing += 1
             console.print(f"[yellow]Warning:[/yellow] Skill {skill_name} not in registry, skipping")
 
     try:
@@ -463,15 +559,24 @@ def compose(skills: tuple[str, ...], name: str, comp_type: str, out_format: str)
             for issue in analysis["potential_issues"]:
                 console.print(f"  - {issue}")
 
+        if missing:
+            sys.exit(1)
+
     except CompositionError as e:
         console.print(f"[red]Composition error:[/red] {e}")
+        sys.exit(1)
 
 
 @cli.command()
-def stats() -> None:
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON")
+def stats(as_json: bool) -> None:
     """Show registry statistics."""
     registry = get_registry()
     stats = registry.get_stats()
+
+    if as_json:
+        emit_json(stats)
+        return
 
     table = Table(title="Registry Statistics")
     table.add_column("Metric", style="cyan")
@@ -536,6 +641,7 @@ def export(path: str, output: str) -> None:
 
     except SkillLoadError as e:
         console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
 
 
 @cli.command()
@@ -547,7 +653,7 @@ def tree(skill_name: str) -> None:
 
     if skill is None:
         console.print(f"[red]Skill not found:[/red] {skill_name}")
-        return
+        sys.exit(1)
 
     dep_tree = Tree(f"[bold]{skill.metadata.name}[/bold] v{skill.metadata.version}")
 
@@ -566,11 +672,190 @@ def tree(skill_name: str) -> None:
     console.print(dep_tree)
 
 
+@cli.command()
+@click.argument("name", required=False)
+@click.option(
+    "--format",
+    "-f",
+    "out_format",
+    type=click.Choice(["mermaid", "tree", "json"]),
+    default="mermaid",
+    help="Output format",
+)
+@click.option("--json", "as_json", is_flag=True, help="Shortcut for --format json")
+def graph(name: str | None, out_format: str, as_json: bool) -> None:
+    """Visualize the skill dependency graph (whole registry or one skill)."""
+    registry = get_registry()
+    entries = registry.list_skills()
+
+    if as_json:
+        out_format = "json"
+
+    nodes: list[str] = []
+    edges: list[tuple[str, str]] = []
+    for entry in entries:
+        skill = registry.get_skill(entry["name"])
+        if skill is None:
+            continue
+        if name and skill.metadata.name != name:
+            continue
+        nodes.append(skill.metadata.name)
+        for dep in skill.metadata.dependencies:
+            edges.append((skill.metadata.name, dep.name))
+
+    if name and not nodes:
+        console.print(f"[red]Skill not found:[/red] {name}")
+        sys.exit(1)
+
+    if not nodes:
+        console.print("[yellow]No skills in registry[/yellow]")
+        return
+
+    if out_format == "json":
+        emit_json(
+            {
+                "nodes": sorted(set(nodes)),
+                "edges": [{"from": a, "to": b} for a, b in edges],
+            }
+        )
+        return
+
+    if out_format == "mermaid":
+        console.print("graph TD")
+        emitted: set[tuple[str, str]] = set()
+        for a, b in edges:
+            if (a, b) not in emitted:
+                emitted.add((a, b))
+                console.print(f"    {a} --> {b}")
+        linked = {n for a, b in edges for n in (a, b)}
+        for n in sorted(set(nodes)):
+            if n not in linked:
+                console.print(f"    {n}")
+        return
+
+    # tree format
+    dep_tree = Tree("[bold]Skill Graph[/bold]")
+    rendered: set[str] = set()
+
+    def add_node(skill_name: str, parent: Tree) -> None:
+        if skill_name in rendered:
+            parent.add(f"{skill_name} (see above)")
+            return
+        rendered.add(skill_name)
+        child = parent.add(f"[cyan]{skill_name}[/cyan]")
+        for a, b in edges:
+            if a == skill_name:
+                add_node(b, child)
+
+    roots = [n for n in nodes if not any(n == b for _, b in edges)]
+    for root in roots or nodes:
+        add_node(root, dep_tree)
+    console.print(dep_tree)
+
+
+@cli.command()
+@click.argument("skill_a")
+@click.argument("skill_b")
+@click.option("--json", "as_json", is_flag=True, help="Output comparison as JSON")
+def compare(skill_a: str, skill_b: str, as_json: bool) -> None:
+    """Compare two skills side by side (metadata + quality score)."""
+    from dataclasses import asdict
+
+    from skillforge.quality.scorer import SkillScorer
+
+    registry = get_registry()
+    a = registry.get_skill(skill_a)
+    b = registry.get_skill(skill_b)
+    if a is None:
+        console.print(f"[red]Skill not found:[/red] {skill_a}")
+        sys.exit(1)
+    if b is None:
+        console.print(f"[red]Skill not found:[/red] {skill_b}")
+        sys.exit(1)
+
+    scorer = SkillScorer()
+
+    def score_of(skill: Skill):  # type: ignore[no-untyped-def]
+        return scorer.score(
+            {
+                "name": skill.metadata.name,
+                "version": str(skill.metadata.version),
+                "description": skill.metadata.description,
+                "author": skill.metadata.author,
+                "framework": skill.metadata.framework.value,
+                "capability": skill.metadata.capability.value,
+                "tags": skill.metadata.tags or [],
+                "content": skill.content,
+            }
+        )
+
+    sa = score_of(a)
+    sb = score_of(b)
+
+    if as_json:
+        emit_json(
+            {
+                skill_a: {
+                    "metadata": a.model_dump(mode="json"),
+                    "score": asdict(sa),
+                },
+                skill_b: {
+                    "metadata": b.model_dump(mode="json"),
+                    "score": asdict(sb),
+                },
+                "winner": (
+                    skill_a
+                    if sa.overall > sb.overall
+                    else skill_b if sb.overall > sa.overall else "tie"
+                ),
+            }
+        )
+        return
+
+    table = Table(title=f"Compare: {skill_a} vs {skill_b}")
+    table.add_column("Field", style="cyan")
+    table.add_column(skill_a)
+    table.add_column(skill_b)
+    rows = [
+        ("Version", str(a.metadata.version), str(b.metadata.version)),
+        ("Description", a.metadata.description[:60], b.metadata.description[:60]),
+        ("Author", a.metadata.author, b.metadata.author),
+        ("Framework", a.metadata.framework.value, b.metadata.framework.value),
+        ("Capability", a.metadata.capability.value, b.metadata.capability.value),
+        ("Tags", ", ".join(a.metadata.tags), ", ".join(b.metadata.tags)),
+        (
+            "Dependencies",
+            str(len(a.metadata.dependencies)),
+            str(len(b.metadata.dependencies)),
+        ),
+        (
+            "Quality score",
+            f"{sa.overall:.1f} ({scorer.get_grade(sa.overall)})",
+            f"{sb.overall:.1f} ({scorer.get_grade(sb.overall)})",
+        ),
+    ]
+    for row in rows:
+        table.add_row(*row)
+    console.print(table)
+
+    if sa.overall > sb.overall:
+        console.print(f"\n[green]Winner:[/green] {skill_a}")
+    elif sb.overall > sa.overall:
+        console.print(f"\n[green]Winner:[/green] {skill_b}")
+    else:
+        console.print("\n[yellow]It's a tie![/yellow]")
+
+
 @cli.command("list")
-def list_command() -> None:
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON")
+def list_command(as_json: bool) -> None:
     """List all installed skills."""
     registry = get_registry()
     skills = registry.list_skills()
+
+    if as_json:
+        emit_json(skills)
+        return
 
     if not skills:
         console.print("[yellow]No skills in registry[/yellow]")
@@ -616,6 +901,8 @@ def batch(names: tuple[str, ...]) -> None:
     console.print(
         f"\n[bold]Result:[/bold] {success} installed, {failed} failed"
     )
+    if failed:
+        sys.exit(1)
 
 
 @cli.command()
@@ -638,6 +925,8 @@ def pack(names: tuple[str, ...]) -> None:
     pack_file = Path("skill-pack.json")
     pack_file.write_text(json.dumps(pack_data, indent=2), encoding="utf-8")
     console.print(f"\n[green]Pack created:[/green] {pack_file}")
+    if not pack_data["skills"]:
+        sys.exit(1)
 
 
 @cli.command()
@@ -661,7 +950,13 @@ def unpack(pack_file: str) -> None:
 
 @cli.command()
 @click.argument("name")
-@click.option("--to", "-t", help="Export to format: claude, cursor, cline")
+@click.option(
+    "--to",
+    "-t",
+    type=click.Choice(["claude", "cursor", "cline", "opencode"]),
+    default=None,
+    help="Export to format: claude, cursor, cline, opencode",
+)
 def convert(name: str, to: str | None) -> None:
     """Convert a skill to another framework format."""
     registry = get_registry()
@@ -669,7 +964,7 @@ def convert(name: str, to: str | None) -> None:
 
     if skill is None:
         console.print(f"[red]Skill not found:[/red] {name}")
-        return
+        sys.exit(1)
 
     if to == "claude":
         output = skill.to_skill_md()
@@ -680,6 +975,9 @@ def convert(name: str, to: str | None) -> None:
     elif to == "cline":
         output = _to_cline_format(skill)
         filename = ".clinerules"
+    elif to == "opencode":
+        output = _to_opencode_format(skill)
+        filename = "AGENTS.md"
     else:
         output = skill.to_skill_md()
         filename = "SKILL.md"
@@ -714,6 +1012,34 @@ def _to_cline_format(skill: Skill) -> str:
     if "instructions" in skill.content:
         lines.append(skill.content["instructions"])
     return "\n".join(lines)
+
+
+def _to_opencode_format(skill: Skill) -> str:
+    """Convert skill to an OpenCode AGENTS.md / agent-instructions file."""
+    meta = skill.metadata
+    lines = [
+        f"# {meta.name}",
+        "",
+        meta.description,
+        "",
+        f"- Version: {meta.version}",
+        f"- Author: {meta.author}",
+        f"- Framework: {meta.framework.value}",
+        f"- Capability: {meta.capability.value}",
+    ]
+    if meta.tags:
+        lines.append(f"- Tags: {', '.join(meta.tags)}")
+    if meta.dependencies:
+        deps = ", ".join(f"{d.name} {d.version_constraint}" for d in meta.dependencies)
+        lines.append(f"- Dependencies: {deps}")
+    lines.append("")
+    if "instructions" in skill.content:
+        lines.append(str(skill.content["instructions"]))
+    else:
+        lines.append("## Instructions")
+        lines.append("")
+        lines.append("Add your skill instructions here.")
+    return "\n".join(lines) + "\n"
 
 
 @cli.group()
@@ -755,7 +1081,7 @@ def templates_use(template_name: str, target_dir: str) -> None:
     template = get_template(template_name)
     if not template:
         console.print(f"[red]Template not found:[/red] {template_name}")
-        return
+        sys.exit(1)
 
     out_dir = Path(target_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -793,13 +1119,19 @@ def templates_inspect(template_name: str) -> None:
     template = get_template(template_name)
     if not template:
         console.print(f"[red]Template not found:[/red] {template_name}")
-        return
+        sys.exit(1)
 
     console.print(Panel(template["instructions"], title=template_name))
 
 
 @cli.command()
-@click.option("--all", "-a", is_flag=True, help="Show all available skills with versions")
+@click.option(
+    "--all",
+    "-a",
+    "all_versions",
+    is_flag=True,
+    help="Show all available skills with versions",
+)
 def updates(all_versions: bool) -> None:
     """Check for skill updates."""
     registry = get_registry()
@@ -840,7 +1172,7 @@ def history(skill_name: str) -> None:
 
     if skill is None:
         console.print(f"[red]Skill not found:[/red] {skill_name}")
-        return
+        sys.exit(1)
 
     console.print(
         Panel(
@@ -864,7 +1196,7 @@ def mcp(skill_name: str, output: str) -> None:
 
     if skill is None:
         console.print(f"[red]Skill not found:[/red] {skill_name}")
-        return
+        sys.exit(1)
 
     mcp_config = {
         "name": skill.metadata.name,
@@ -880,62 +1212,106 @@ def mcp(skill_name: str, output: str) -> None:
 
 
 @cli.command()
-def doctor() -> None:
-    """Check SkillForge installation and dependencies."""
+@click.option("--json", "as_json", is_flag=True, help="Output diagnostics as JSON")
+def doctor(as_json: bool) -> None:
+    """Check SkillForge installation, dependencies and registry health."""
 
-    console.print("[bold]SkillForge Doctor[/bold]\n")
+    checks: list[dict[str, Any]] = []
 
-    checks = []
+    def add(name: str, ok: bool, result: str) -> None:
+        checks.append({"check": name, "ok": ok, "result": result})
 
-    # Check Python version
-    import sys
-
+    # Python version
     py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    checks.append(("Python version", py_ver, True))
+    add("Python version", sys.version_info >= (3, 10), py_ver)
 
-    # Check dependencies
+    # Dependencies
     deps = ["click", "rich", "pydantic", "yaml", "platformdirs"]
     for dep in deps:
         try:
             __import__(dep.replace("-", "_"))
-            checks.append((f"Dependency: {dep}", "installed", True))
+            add(f"Dependency: {dep}", True, "installed")
         except ImportError:
-            checks.append((f"Dependency: {dep}", "missing", False))
+            add(f"Dependency: {dep}", False, "missing")
 
-    # Check registry
+    # SkillForge package
+    add("SkillForge version", True, __version__)
+
+    # Registry health
     try:
         registry = get_registry()
         count = len(registry.list_skills())
-        checks.append(("Local registry", f"{count} skills", True))
-    except Exception:
-        checks.append(("Local registry", "error", False))
+        add("Local registry", True, f"{count} skills")
+        add("Registry path", registry.registry_path.exists(), str(registry.registry_path))
+        writable = os.access(registry.registry_path, os.W_OK)
+        add("Registry writable", writable, "writable" if writable else "read-only")
+    except Exception as exc:  # noqa: BLE001 - doctor must survive any registry error
+        add("Local registry", False, f"error: {exc}")
 
-    # Display results
+    # Built-in templates
+    try:
+        from skillforge.templates.registry import list_templates
+
+        templates_count = len(list_templates())
+        add("Templates available", templates_count > 0, f"{templates_count} templates")
+    except Exception as exc:  # noqa: BLE001
+        add("Templates available", False, f"error: {exc}")
+
+    passed = sum(1 for c in checks if c["ok"])
+    total = len(checks)
+    healthy = passed == total
+
+    if as_json:
+        emit_json(
+            {
+                "healthy": healthy,
+                "passed": passed,
+                "total": total,
+                "checks": checks,
+            }
+        )
+        sys.exit(0 if healthy else 1)
+
+    console.print("[bold]SkillForge Doctor[/bold]\n")
+
     table = Table(title="Diagnostic Results")
     table.add_column("Check", style="cyan")
     table.add_column("Status")
     table.add_column("Result")
 
-    for name, result, ok in checks:
-        status = "[green]✓[/green]" if ok else "[red]✗[/red]"
-        table.add_row(name, status, result)
+    for check in checks:
+        status = "[green]OK[/green]" if check["ok"] else "[red]FAIL[/red]"
+        table.add_row(check["check"], status, str(check["result"]))
 
     console.print(table)
 
-    passed = sum(1 for _, _, ok in checks if ok)
-    total = len(checks)
-    if passed == total:
+    if healthy:
         console.print(f"\n[green]All {total} checks passed![/green]")
     else:
         console.print(
             f"\n[yellow]{passed}/{total} checks passed. "
             f"Fix the issues above.[/yellow]"
         )
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument("shell", type=click.Choice(["bash", "zsh", "fish", "powershell"]))
+def completion(shell: str) -> None:
+    """Print a shell completion script (e.g. `skillforge completion bash`)."""
+    from click.shell_completion import get_completion_class
+
+    cls = get_completion_class(shell)
+    if cls is None:
+        raise click.ClickException(f"Unsupported shell: {shell}")
+    complete = cls(cli, {}, "skillforge", "_SKILLFORGE_COMPLETE")
+    click.echo(complete.source())
 
 
 @cli.command()
 @click.argument("path", default=".")
-def score(path: str) -> None:
+@click.option("--json", "as_json", is_flag=True, help="Output score as JSON")
+def score(path: str, as_json: bool) -> None:
     """Calculate quality score for a skill."""
     from skillforge.quality.scorer import SkillScorer
 
@@ -944,7 +1320,7 @@ def score(path: str) -> None:
         skill = loader.load(Path(path))
     except Exception as e:
         console.print(f"[red]Failed to load skill:[/red] {e}")
-        return
+        sys.exit(1)
 
     scorer = SkillScorer()
     data = {
@@ -961,6 +1337,21 @@ def score(path: str) -> None:
     result = scorer.score(data)
     grade = scorer.get_grade(result.overall)
     badge = scorer.get_badge(result.overall)
+
+    if as_json:
+        from dataclasses import asdict
+
+        payload = asdict(result)
+        payload.update(
+            {
+                "name": skill.metadata.name,
+                "version": str(skill.metadata.version),
+                "grade": grade,
+                "badge": badge,
+            }
+        )
+        emit_json(payload)
+        return
 
     table = Table(title=f"Quality Score: {skill.metadata.name}")
     table.add_column("Dimension", style="cyan")
@@ -997,7 +1388,7 @@ def changelog(path: str) -> None:
         skill = loader.load(Path(path))
     except Exception as e:
         console.print(f"[red]Failed to load skill:[/red] {e}")
-        return
+        sys.exit(1)
 
     lines = [
         f"# Changelog for {skill.metadata.name}",
@@ -1034,7 +1425,7 @@ def docs(path: str, output: str) -> None:
         skill = loader.load(Path(path))
     except Exception as e:
         console.print(f"[red]Failed to load skill:[/red] {e}")
-        return
+        sys.exit(1)
 
     framework = (
         skill.metadata.framework.value
@@ -1104,7 +1495,7 @@ def recommend(path: str) -> None:
         skill = loader.load(Path(path))
     except Exception as e:
         console.print(f"[red]Failed to load skill:[/red] {e}")
-        return
+        sys.exit(1)
 
     from skillforge.templates.registry import TEMPLATES
 
@@ -1157,7 +1548,7 @@ def compress(path: str, output: str | None) -> None:
         skill = loader.load(Path(path))
     except Exception as e:
         console.print(f"[red]Failed to load skill:[/red] {e}")
-        return
+        sys.exit(1)
 
     bundle = {
         "name": skill.metadata.name,
@@ -1219,7 +1610,7 @@ def inspect(path: str) -> None:
         skill = loader.load(Path(path))
     except Exception as e:
         console.print(f"[red]Failed to load skill:[/red] {e}")
-        return
+        sys.exit(1)
 
     framework_val = skill.metadata.framework.value
     cap_val = skill.metadata.capability.value

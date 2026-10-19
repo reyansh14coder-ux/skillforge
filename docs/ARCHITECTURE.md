@@ -399,10 +399,11 @@ class CustomComposer(SkillComposition):
 
 ### Test Coverage
 
-Current: 42 tests covering:
+Current: 70 tests covering:
 - Core models: 10 tests
 - Resolver: 7 tests
 - Loader: 6 tests
 - Registry: 7 tests
 - Sandbox: 4 tests
 - Composition: 8 tests
+- CLI (click runner): 21 tests

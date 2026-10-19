@@ -53,7 +53,7 @@
 
 ### 🏆 What Makes SkillForge Top-Tier
 
-- **Battle-tested** — 49 tests passing with CI on every push
+- **Battle-tested** — 70 tests passing with CI on every push
 - **Production-ready** — Quality scoring, versioning, dependency resolution
 - **Developer-first** — Beautiful CLI output, comprehensive docs
 - **Extensible** — Templates, plugins, MCP integration
@@ -317,7 +317,8 @@ skillforge/
 │       ├── __init__.py
 │       └── helpers.py
 ├── tests/                        # Test suite
-│   └── test_skillforge.py        # 42 tests
+│   ├── test_skillforge.py        # 49 unit tests
+│   └── test_cli.py               # 21 CLI tests
 ├── examples/                     # Example skills
 │   ├── code-review/
 │   ├── security-scan/
@@ -460,6 +461,10 @@ pip install -e ".[dev]"
 
 ## CLI Reference
 
+> **Machine-readable output:** all read commands accept `--json` —
+> `list`, `search`, `info`, `stats`, `score`, `validate`, `doctor`,
+> `graph`, and `compare` print clean JSON for scripts and CI.
+
 ### `skillforge init`
 
 Initialize a new skill project.
@@ -471,6 +476,7 @@ Options:
   --name, -n TEXT        Skill name
   --author, -a TEXT      Author name
   --framework, -f TEXT   Target framework (default: universal)
+  --template, -t TEXT    Scaffold from a built-in template
   --help                 Show this message and exit
 ```
 
@@ -478,6 +484,7 @@ Options:
 ```bash
 skillforge init --name "my-skill" --author "john"
 skillforge init ./my-skill --framework claude-code
+skillforge init ./my-skill --template code-review
 ```
 
 ### `skillforge validate`
@@ -489,6 +496,7 @@ skillforge validate [PATH] [OPTIONS]
 
 Options:
   --strict    Enable strict validation (warnings become errors)
+  --json      Output results as JSON (exit code 1 on failure)
   --help      Show this message and exit
 ```
 
@@ -789,7 +797,7 @@ Convert a skill to another framework format.
 skillforge convert [SKILL_NAME] [OPTIONS]
 
 Options:
-  --to, -t TEXT    Target format: claude, cursor, cline
+  --to, -t TEXT    Target format: claude, cursor, cline, opencode
 ```
 
 **Examples:**
@@ -797,6 +805,7 @@ Options:
 skillforge convert code-review --to claude    # Creates SKILL.md
 skillforge convert code-review --to cursor    # Creates .cursorrules
 skillforge convert code-review --to cline     # Creates .clinerules
+skillforge convert code-review --to opencode  # Creates AGENTS.md
 ```
 
 ### `skillforge updates`
@@ -946,6 +955,56 @@ skillforge inspect [PATH]
 
 Arguments:
   PATH    Path to skill directory (default: current)
+```
+
+### `skillforge graph`
+
+Visualize the skill dependency graph for the whole registry (or one skill).
+
+```bash
+skillforge graph [NAME] [OPTIONS]
+
+Options:
+  --format, -f [mermaid|tree|json]   Output format (default: mermaid)
+  --json                            Shortcut for --format json
+```
+
+**Examples:**
+```bash
+skillforge graph                          # Mermaid graph TD for the registry
+skillforge graph my-app --format tree     # Rich tree for one skill
+skillforge graph --json                   # { "nodes": [...], "edges": [...] }
+```
+
+### `skillforge compare`
+
+Compare two skills side by side: metadata plus quality score, with a winner.
+
+```bash
+skillforge compare SKILL_A SKILL_B [OPTIONS]
+
+Options:
+  --json    Output the comparison as JSON
+```
+
+**Examples:**
+```bash
+skillforge compare code-review security-scan
+skillforge compare code-review security-scan --json
+```
+
+### `skillforge completion`
+
+Print a shell completion script for bash, zsh, fish or powershell.
+
+```bash
+skillforge completion [bash|zsh|fish|powershell]
+
+# bash
+source <(skillforge completion bash)
+
+# powershell (add to $PROFILE)
+skillforge completion powershell | Out-String | Invoke-Expression
 ```
 
 ---
@@ -1634,8 +1693,9 @@ ruff format .
 - [x] CLI interface
 - [x] Sandbox testing
 - [x] Composition engine
-- [x] Test suite (42 tests)
+- [x] Test suite (70 tests)
 - [x] CI/CD pipeline
+- [x] Skill templates and scaffolding (19 built-in)
 
 ### Phase 2: Remote Registry
 - [ ] Remote registry server (skillforge.dev)
@@ -1646,7 +1706,6 @@ ruff format .
 ### Phase 3: Advanced Features
 - [ ] Automated security scanning
 - [ ] IDE extensions (VS Code, JetBrains)
-- [ ] Skill templates and scaffolding
 - [ ] Team/organization registries
 - [ ] Skill analytics and usage tracking
 
