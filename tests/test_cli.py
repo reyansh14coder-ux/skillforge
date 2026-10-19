@@ -286,3 +286,50 @@ def test_batch_missing_fails(
 ) -> None:
     result = runner.invoke(cli, ["batch", "ghost-a", "ghost-b"])
     assert result.exit_code == 1
+
+
+def test_loader_merges_skill_md_instructions(tmp_path) -> None:  # noqa: ANN001
+    from skillforge.core.loader import SkillLoader
+
+    (tmp_path / "skillforge.yaml").write_text(
+        "metadata:\n"
+        "  name: tiny\n"
+        "  description: From the yaml config\n"
+        "  author: tester\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "SKILL.md").write_text(
+        "# tiny\n\n## Instructions\n\nAlways greet the user.\n",
+        encoding="utf-8",
+    )
+
+    skill = SkillLoader().load_from_directory(tmp_path)
+    assert skill.content["instructions"] == "Always greet the user."
+    assert skill.metadata.description == "From the yaml config"
+
+
+def test_loader_short_name_markdown_no_crash(tmp_path) -> None:  # noqa: ANN001
+    from skillforge.core.loader import SkillLoader
+
+    (tmp_path / "SKILL.md").write_text(
+        "# x\n\n## Instructions\n\nDo it.\n",
+        encoding="utf-8",
+    )
+
+    skill = SkillLoader().load_from_directory(tmp_path)
+    assert skill.metadata.name == "x"
+    assert len(skill.metadata.description) >= 10
+
+
+def test_loader_uses_header_prose_as_description(tmp_path) -> None:  # noqa: ANN001
+    from skillforge.core.loader import SkillLoader
+
+    (tmp_path / "SKILL.md").write_text(
+        "# greet\n\nFriendly greetings for every occasion.\n"
+        "\n**Author:** tester\n\n## Instructions\n\nGreet warmly.\n",
+        encoding="utf-8",
+    )
+
+    skill = SkillLoader().load_from_directory(tmp_path)
+    assert skill.metadata.description == "Friendly greetings for every occasion."
+    assert skill.content["instructions"] == "Greet warmly."

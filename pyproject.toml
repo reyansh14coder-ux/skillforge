@@ -56,10 +56,9 @@ dev = [
 skillforge = "skillforge.cli.main:cli"
 
 [project.urls]
-Homepage = "https://github.com/skillforge/skillforge"
-Documentation = "https://skillforge.dev"
-Repository = "https://github.com/skillforge/skillforge"
-Issues = "https://github.com/skillforge/skillforge/issues"
+Homepage = "https://github.com/reyansh14coder-ux/skillforge"
+Repository = "https://github.com/reyansh14coder-ux/skillforge"
+Issues = "https://github.com/reyansh14coder-ux/skillforge/issues"
 
 [tool.ruff]
 target-version = "py310"

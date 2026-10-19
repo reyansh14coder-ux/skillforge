@@ -59,13 +59,34 @@ class SkillLoader:
         for config_name in self.SUPPORTED_CONFIGS:
             config_path = directory / config_name
             if config_path.exists():
-                return self.load_from_file(config_path)
+                skill = self.load_from_file(config_path)
+                return self._merge_skill_md(directory, skill)
 
         skill_files = list(directory.glob("*.md"))
         if skill_files:
             return self._load_markdown(skill_files[0])
 
         raise SkillLoadError(f"No skill configuration found in {directory}")
+
+    def _merge_skill_md(self, directory: Path, skill: Skill) -> Skill:
+        """Fill missing content from SKILL.md when a YAML/JSON config wins.
+
+        Without this, ``score``/``docs``/``recommend`` ignore the instructions
+        the user wrote in SKILL.md whenever skillforge.yaml also exists.
+        """
+        md_path = directory / "SKILL.md"
+        if not md_path.exists() or skill.content.get("instructions"):
+            return skill
+        try:
+            md_skill = self._load_markdown(md_path)
+        except SkillLoadError:
+            return skill
+        if md_skill.content.get("instructions"):
+            skill.content["instructions"] = md_skill.content["instructions"]
+        for key in ("usage", "examples", "notes"):
+            if key in md_skill.content and key not in skill.content:
+                skill.content[key] = md_skill.content[key]
+        return skill
 
     def load(self, path: Path) -> Skill:
         """Load a skill from a file or directory."""
@@ -120,12 +141,20 @@ class SkillLoader:
                     metadata[current_section] = "\n".join(section_content).strip()
                 current_section = line[3:].strip().lower().replace(" ", "_")
                 section_content = []
-            elif line.startswith("**") and "**:" in line:
-                match = re.match(r"\*\*(.+?)\*\*:\s*(.+)", line)
+            elif line.startswith("**"):
+                match = re.match(r"\*\*(.+?):\*\*\s+(.+)", line) or re.match(
+                    r"\*\*(.+?)\*\*:\s*(.+)", line
+                )
                 if match:
+                    if current_section == "header" and section_content:
+                        metadata.setdefault(
+                            "header", "\n".join(section_content).strip()
+                        )
+                        section_content = []
                     key = match.group(1).strip().lower().replace(" ", "_")
-                    value = match.group(2).strip()
-                    metadata[key] = value
+                    metadata[key] = match.group(2).strip()
+                else:
+                    section_content.append(line)
             else:
                 section_content.append(line)
 
@@ -136,6 +165,8 @@ class SkillLoader:
         description = metadata.get("description", metadata.get("header", ""))
         if not description or len(description) < 10:
             description = f"Skill: {name}"
+        if len(description) < 10:
+            description += " (custom skill)"
 
         version_str = metadata.get("version", "0.1.0")
         try:

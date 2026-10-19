@@ -4,1725 +4,726 @@
 
 [![CI](https://github.com/reyansh14coder-ux/skillforge/actions/workflows/ci.yml/badge.svg)](https://github.com/reyansh14coder-ux/skillforge/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-49%20passing-brightgreen.svg)](https://github.com/reyansh14coder-ux/skillforge)
-[![Downloads](https://img.shields.io/badge/download-pip%20install%20skillforge-ff69b4.svg)](https://pypi.org/project/skillforge/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-73%20passing-brightgreen.svg)](tests)
+[![Templates](https://img.shields.io/badge/templates-19%20built--in-orange.svg)](#built-in-templates)
+[![Commands](https://img.shields.io/badge/commands-32%20CLI-blue.svg)](#command-reference)
 [![MCP Ready](https://img.shields.io/badge/MCP-ready-7c3aed.svg)](https://modelcontextprotocol.io)
-[![Templates](https://img.shields.io/badge/templates-20%20built--in-orange.svg)](https://github.com/reyansh14coder-ux/skillforge)
-[![Commands](https://img.shields.io/badge/commands-25%20CLI-blue.svg)](https://github.com/reyansh14coder-ux/skillforge)
-[![Quality](https://img.shields.io/badge/quality-scoring-brightgreen.svg)](https://github.com/reyansh14coder-ux/skillforge)
+
+SkillForge gives your AI agent skills an **npm-style workflow**: create, validate, score, version, publish, discover, compose and export them — all from one local-first CLI that works with **Claude Code, Codex, Cursor, Cline and OpenCode**.
+
+- **Local-first** — your registry lives on your machine, no account or network needed
+- **5 runtime dependencies** — click, rich, pyyaml, pydantic, platformdirs
+- **CI-tested** — 73 tests on Python 3.10 / 3.11 / 3.12 on every push
 
 ---
 
-## Table of Contents
+## Contents
 
-- [Why SkillForge?](#why-skillforge)
-- [What is SkillForge?](#what-is-skillforge)
-- [The Problem](#the-problem)
-- [The Solution](#the-solution)
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [Installation](#installation)
-- [CLI Reference](#cli-reference)
-- [Built-in Templates](#built-in-templates)
-- [Skill Format Specification](#skill-format-specification)
-- [Examples](#examples)
-- [Composition Engine](#composition-engine)
-- [MCP Integration](#mcp-integration)
+- [Install](#install)
+- [60-second quickstart](#60-second-quickstart)
+- [Your first skill](#your-first-skill)
+- [Recipes](#recipes)
+- [Command reference](#command-reference)
+- [Built-in templates](#built-in-templates)
+- [Skill format](#skill-format)
+- [Distribution: export, convert, pack, MCP](#distribution-export-convert-pack-mcp)
+- [Composition, graphs and comparison](#composition-graphs-and-comparison)
+- [Shell completion](#shell-completion)
 - [Python API](#python-api)
-- [Contributing](#contributing)
+- [Development](#development)
 - [Roadmap](#roadmap)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## Why SkillForge?
+## Install
 
-> "Every developer is building AI agent skills, but there's no npm for them. Until now."
-
-### 🚀 The Numbers Speak
-
-| Metric | Value |
-|--------|-------|
-| **Tests Passing** | 49/49 |
-| **Built-in Templates** | 20 production-ready |
-| **CLI Commands** | 25+ |
-| **Quality Checks** | 4 dimensions |
-| **Export Formats** | Claude, Cursor, Cline |
-| **Composition Types** | Chain, Parallel, DAG |
-
-### 🏆 What Makes SkillForge Top-Tier
-
-- **Battle-tested** — 70 tests passing with CI on every push
-- **Production-ready** — Quality scoring, versioning, dependency resolution
-- **Developer-first** — Beautiful CLI output, comprehensive docs
-- **Extensible** — Templates, plugins, MCP integration
-- **Fast** — Sub-second operations on local registry
-- **Secure** — Sandboxed execution, fingerprinting, validation
-
-### 💡 Who Uses SkillForge?
-
-- **AI Agent Developers** — Package and distribute skills
-- **DevOps Teams** — Automate infrastructure with reusable skills
-- **Security Engineers** — Audit, scan, and harden code
-- **Full-Stack Devs** — Scaffold projects, generate tests, create APIs
-- **Open Source Contributors** — Share skills with the community
-
----
-
-## What is SkillForge?
-
-The AI agent ecosystem in 2026 has exploded with **skills** — reusable capabilities for Claude Code, Codex, Cursor, Cline, OpenCode, and more. Every developer is building them, sharing them on GitHub, and composing them into workflows.
-
-**But there's no infrastructure.**
-
-There's no npm for AI agent skills. No pip. No cargo. No standard way to:
-- Publish a skill and make it discoverable
-- Install a skill with its dependencies
-- Version skills and handle compatibility
-- Chain skills into automated workflows
-- Test skills before deploying them
-
-**SkillForge fills this gap.** It's the missing package manager for the AI agent skill ecosystem.
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          SkillForge                                 │
-│                                                                     │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌───────────┐ │
-│  │   Registry   │  │   Resolver  │  │   Sandbox   │  │  Compose  │ │
-│  │              │  │             │  │             │  │           │ │
-│  │  Publish     │  │  Auto-dep   │  │  Validate   │  │  Chain    │ │
-│  │  Search      │  │  Versioning │  │  Test       │  │  Parallel │ │
-│  │  Discover    │  │  Conflicts  │  │  Diff       │  │  DAG      │ │
-│  │  Version     │  │  Topo-sort  │  │  Isolate    │  │  Export   │ │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └───────────┘ │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐ │
-│  │                     Universal CLI                              │ │
-│  │  init · validate · publish · install · search · info          │ │
-│  │  delete · test · compose · tree · export · stats · list       │ │
-│  └───────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## The Problem
-
-### The Skill Explosion
-
-In 2026, AI coding agents have become the primary way developers write code. These agents use **skills** — self-contained capability modules that extend what the agent can do. Skills handle everything from code review to security scanning, documentation generation to deployment automation.
-
-### What's Missing
-
-The current state of AI agent skills is like npm in 2008 — everyone's building packages, but there's no infrastructure:
-
-| Problem | Impact |
-|---------|--------|
-| **No standard format** | Each framework (Claude Code, Codex, Cursor) has its own skill format |
-| **No registry** | Skills live in scattered GitHub repos with no discovery mechanism |
-| **No dependency management** | Skills that depend on other skills have no way to declare or resolve dependencies |
-| **No versioning** | No semantic versioning, no compatibility checks, no upgrade paths |
-| **No testing** | No way to validate skills work before deploying them |
-| **No composition** | Chaining skills together is manual and error-prone |
-
-### The Cost
-
-Developers waste hours:
-- Searching GitHub for the right skill
-- Manually resolving version conflicts
-- Debugging skills that depend on other skills
-- Writing boilerplate to chain skills together
-- Testing skills in production (dangerous!)
-
----
-
-## The Solution
-
-SkillForge provides the infrastructure layer that the AI agent skill ecosystem needs:
-
-### 1. Universal Registry
-```bash
-# Publish your skill to the world
-skillforge publish .
-
-# Someone else finds and installs it
-skillforge search "code review"
-skillforge install author/code-review-skill
-```
-
-### 2. Automatic Dependency Resolution
-```yaml
-# Your skill declares dependencies
-metadata:
-  name: advanced-review
-  dependencies:
-    - name: base-review
-      version_constraint: ">=1.0.0"
-    - name: security-scan
-      version_constraint: ">=0.5.0"
-```
-
-SkillForge automatically:
-- Resolves all dependencies
-- Detects version conflicts
-- Finds circular dependencies
-- Determines install order
-
-### 3. Sandbox Testing
-```bash
-# Test a skill in isolation before deploying
-skillforge test ./my-skill
-
-# Validate without running
-skillforge validate ./my-skill --strict
-```
-
-### 4. Skill Composition
-```bash
-# Chain skills into a workflow
-skillforge compose code-review security-scan auto-format --type chain
-
-# Run skills in parallel
-skillforge compose lint test build --type parallel
-
-# Export the composition plan
-skillforge compose skill-a skill-b --format yaml > workflow.yaml
-```
-
-### 5. Multi-Framework Support
-SkillForge works with:
-- **Claude Code** — Anthropic's AI coding assistant
-- **Codex** — OpenAI's code generation
-- **Cursor** — AI-powered code editor
-- **Cline** — VS Code AI extension
-- **OpenCode** — Open-source coding agent
-- **Universal** — Framework-agnostic skills
-
----
-
-## Architecture
-
-### High-Level Architecture
-
-```
-                    ┌─────────────────────────┐
-                    │        CLI Layer         │
-                    │   (skillforge command)   │
-                    └────────────┬────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │     Core Engine          │
-                    │  ┌──────────────────┐   │
-                    │  │    Models         │   │
-                    │  │  Skill, Version,  │   │
-                    │  │  Dependency       │   │
-                    │  └──────────────────┘   │
-                    │  ┌──────────────────┐   │
-                    │  │    Resolver       │   │
-                    │  │  Topological Sort │   │
-                    │  │  Version Check    │   │
-                    │  └──────────────────┘   │
-                    │  ┌──────────────────┐   │
-                    │  │    Loader         │   │
-                    │  │  YAML/JSON/MD     │   │
-                    │  └──────────────────┘   │
-                    └────────────┬────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-    ┌─────────▼─────────┐ ┌─────▼─────┐ ┌─────────▼─────────┐
-    │     Registry       │ │  Sandbox  │ │   Composition     │
-    │                    │ │           │ │                   │
-    │  Local storage     │ │  Isolate  │ │  Chain            │
-    │  Search/Index      │ │  Test     │ │  Parallel         │
-    │  Version mgmt      │ │  Validate │ │  DAG              │
-    │  Stats             │ │  Diff     │ │  Export           │
-    └────────────────────┘ └───────────┘ └───────────────────┘
-```
-
-### Project Structure
-
-```
-skillforge/
-├── skillforge/                    # Main package
-│   ├── __init__.py               # Package metadata
-│   ├── core/                     # Core engine
-│   │   ├── __init__.py
-│   │   ├── models.py             # Data models
-│   │   │   ├── Skill             # Main skill model
-│   │   │   ├── SkillMetadata     # Skill metadata
-│   │   │   ├── SkillVersion      # Semantic version
-│   │   │   ├── SkillDependency   # Dependency declaration
-│   │   │   ├── SkillConfig       # Runtime config
-│   │   │   ├── SkillCapability   # Capability enum
-│   │   │   ├── SkillFramework    # Framework enum
-│   │   │   ├── InstalledSkill    # Installed skill tracking
-│   │   │   ├── CompositionPlan   # Composition plan
-│   │   │   └── CompositionStep   # Single composition step
-│   │   ├── resolver.py           # Dependency resolver
-│   │   │   ├── DependencyResolver
-│   │   │   ├── ResolutionResult
-│   │   │   ├── ResolvedDependency
-│   │   │   └── Exceptions
-│   │   └── loader.py             # Multi-format loader
-│   │       ├── SkillLoader
-│   │       └── SkillLoadError
-│   ├── registry/                 # Skill registry
-│   │   ├── __init__.py
-│   │   └── store.py              # Local registry
-│   │       ├── SkillRegistry
-│   │       ├── publish()
-│   │       ├── get_skill()
-│   │       ├── search()
-│   │       ├── delete_skill()
-│   │       └── get_stats()
-│   ├── sandbox/                  # Sandbox execution
-│   │   ├── __init__.py
-│   │   └── executor.py           # Isolated execution
-│   │       ├── SkillSandbox
-│   │       ├── SandboxResult
-│   │       ├── prepare()
-│   │       ├── validate_skill()
-│   │       ├── test_skill()
-│   │       └── diff()
-│   ├── composition/              # Composition engine
-│   │   ├── __init__.py
-│   │   └── engine.py             # Skill composition
-│   │       ├── SkillComposition
-│   │       ├── CompositionError
-│   │       ├── compose()
-│   │       ├── chain()
-│   │       ├── parallel()
-│   │       ├── analyze()
-│   │       └── export_plan()
-│   ├── cli/                      # Command-line interface
-│   │   ├── __init__.py
-│   │   └── main.py               # CLI commands
-│   │       ├── init
-│   │       ├── validate
-│   │       ├── publish
-│   │       ├── install
-│   │       ├── search
-│   │       ├── info
-│   │       ├── delete
-│   │       ├── test
-│   │       ├── compose
-│   │       ├── tree
-│   │       ├── export
-│   │       ├── stats
-│   │       └── list
-│   └── utils/                    # Utilities
-│       ├── __init__.py
-│       └── helpers.py
-├── tests/                        # Test suite
-│   ├── test_skillforge.py        # 49 unit tests
-│   └── test_cli.py               # 21 CLI tests
-├── examples/                     # Example skills
-│   ├── code-review/
-│   ├── security-scan/
-│   ├── auto-format/
-│   └── docs-generator/
-├── .github/workflows/            # CI/CD
-│   └── ci.yml
-├── pyproject.toml                # Project config
-├── README.md                     # This file
-├── CONTRIBUTING.md               # Contributing guide
-├── LICENSE                       # MIT License
-└── .gitignore
-```
-
----
-
-## Quick Start
-
-### Installation
+SkillForge is installed straight from GitHub (the name `skillforge` on PyPI is a
+different package):
 
 ```bash
-pip install skillforge
+pip install git+https://github.com/reyansh14coder-ux/skillforge.git
 ```
 
-### Your First Skill
-
-#### Step 1: Initialize
-
-```bash
-mkdir my-first-skill
-cd my-first-skill
-skillforge init --name "greeting" --author "your-name"
-```
-
-This creates:
-```
-my-first-skill/
-├── skillforge.yaml    # Skill configuration
-└── SKILL.md           # Skill instructions
-```
-
-#### Step 2: Edit the Skill
-
-Edit `SKILL.md`:
-
-```markdown
-# Greeting Skill
-
-A simple skill that generates friendly greetings.
-
-**Author:** your-name
-**Version:** 1.0.0
-**Framework:** universal
-**Capability:** tool
-**Tags:** greeting, hello, utility
-
-## Instructions
-
-When the user asks for a greeting, respond with a friendly message.
-Include the current time of day in your greeting (morning, afternoon, evening).
-```
-
-#### Step 3: Validate
-
-```bash
-skillforge validate .
-```
-
-Output:
-```
-Validation: greeting
-+----------+--------+-----------+
-| Check    | Status | Details   |
-|----------+--------+-----------+
-| Name     | OK     | greeting  |
-| Version  | OK     | 1.0.0     |
-| Author   | OK     | your-name |
-+----------+--------+-----------+
-
-Validation passed!
-```
-
-#### Step 4: Publish
-
-```bash
-skillforge publish .
-```
-
-Output:
-```
-Published!
-  Skill: greeting
-  Version: 1.0.0
-  ID: your-name_greeting@1.0.0
-```
-
-#### Step 5: Search & Install
-
-```bash
-# Search for skills
-skillforge search "greeting"
-
-# Install a skill
-skillforge install your-name/greeting
-
-# View skill info
-skillforge info greeting
-```
-
----
-
-## Installation
-
-### From PyPI
-
-```bash
-pip install skillforge
-```
-
-### From Source
+Or from a source checkout:
 
 ```bash
 git clone https://github.com/reyansh14coder-ux/skillforge.git
 cd skillforge
-pip install -e ".[dev]"
+pip install -e .
 ```
 
-### Requirements
-
-- Python 3.10 or higher
-- Dependencies are automatically installed:
-  - click (CLI framework)
-  - rich (terminal formatting)
-  - pydantic (data validation)
-  - pyyaml (YAML parsing)
-  - httpx (HTTP client)
-  - platformdirs (platform-specific directories)
-
----
-
-## CLI Reference
-
-> **Machine-readable output:** all read commands accept `--json` —
-> `list`, `search`, `info`, `stats`, `score`, `validate`, `doctor`,
-> `graph`, and `compare` print clean JSON for scripts and CI.
-
-### `skillforge init`
-
-Initialize a new skill project.
-
-```bash
-skillforge init [PATH] [OPTIONS]
-
-Options:
-  --name, -n TEXT        Skill name
-  --author, -a TEXT      Author name
-  --framework, -f TEXT   Target framework (default: universal)
-  --template, -t TEXT    Scaffold from a built-in template
-  --help                 Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge init --name "my-skill" --author "john"
-skillforge init ./my-skill --framework claude-code
-skillforge init ./my-skill --template code-review
-```
-
-### `skillforge validate`
-
-Validate a skill project.
-
-```bash
-skillforge validate [PATH] [OPTIONS]
-
-Options:
-  --strict    Enable strict validation (warnings become errors)
-  --json      Output results as JSON (exit code 1 on failure)
-  --help      Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge validate .
-skillforge validate ./my-skill --strict
-```
-
-### `skillforge publish`
-
-Publish a skill to the local registry.
-
-```bash
-skillforge publish [PATH] [OPTIONS]
-
-Options:
-  --version, -v TEXT    Specific version to publish
-  --help                Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge publish .
-skillforge publish . --version 2.0.0
-```
-
-### `skillforge install`
-
-Install a skill from the registry.
-
-```bash
-skillforge install [NAME] [OPTIONS]
-
-Options:
-  --version, -v TEXT    Specific version to install
-  --help                Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge install code-review
-skillforge install code-review --version 1.2.0
-```
-
-### `skillforge search`
-
-Search for skills in the registry.
-
-```bash
-skillforge search [QUERY] [OPTIONS]
-
-Options:
-  --tags, -t TEXT           Filter by tags (comma-separated)
-  --capability, -c TEXT     Filter by capability
-  --framework, -f TEXT      Filter by framework
-  --limit, -l INTEGER       Max results (default: 20)
-  --help                    Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge search "code review"
-skillforge search --tags "security,scanning"
-skillforge search --capability tool --framework claude-code
-```
-
-### `skillforge info`
-
-Show information about a skill.
-
-```bash
-skillforge info [NAME] [OPTIONS]
-
-Options:
-  --version, -v TEXT    Specific version
-  --help                Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge info code-review
-skillforge info code-review --version 1.2.0
-```
-
-### `skillforge delete`
-
-Delete a skill from the registry.
-
-```bash
-skillforge delete [NAME] [OPTIONS]
-
-Options:
-  --version, -v TEXT    Version to delete
-  --all                 Delete all versions
-  --help                Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge delete code-review --version 1.0.0
-skillforge delete code-review --all
-```
-
-### `skillforge test`
-
-Test a skill in a sandbox.
-
-```bash
-skillforge test [PATH] [OPTIONS]
-
-Options:
-  --timeout, -t INTEGER    Test timeout in seconds (default: 60)
-  --command, -c TEXT       Custom test command
-  --help                   Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge test .
-skillforge test ./my-skill --timeout 120
-skillforge test ./my-skill --command "python test.py"
-```
-
-### `skillforge compose`
-
-Compose multiple skills into a workflow.
-
-```bash
-skillforge compose [SKILLS]... [OPTIONS]
-
-Options:
-  --name, -n TEXT     Composition name (default: composed-workflow)
-  --type TEXT          Composition type: auto, chain, parallel (default: auto)
-  --format, -f TEXT    Output format: yaml, json, mermaid (default: yaml)
-  --help               Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge compose skill-a skill-b --type chain
-skillforge compose skill-a skill-b skill-c --type parallel
-skillforge compose skill-a skill-b --format mermaid
-```
-
-### `skillforge tree`
-
-Show dependency tree for a skill.
-
-```bash
-skillforge tree [SKILL_NAME]
-
-Options:
-  --help    Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge tree code-review
-```
-
-### `skillforge export`
-
-Export a skill as a distributable package.
-
-```bash
-skillforge export [PATH] [OPTIONS]
-
-Options:
-  --output, -o TEXT    Export directory (default: skillforge-export)
-  --help               Show this message and exit
-```
-
-**Examples:**
-```bash
-skillforge export .
-skillforge export ./my-skill --output ./dist
-```
-
-### `skillforge stats`
-
-Show registry statistics.
-
-```bash
-skillforge stats
-
-Options:
-  --help    Show this message and exit
-```
-
-### `skillforge list`
-
-List all installed skills.
-
-```bash
-skillforge list
-
-Options:
-  --help    Show this message and exit
-```
-
-### `skillforge batch`
-
-Install multiple skills at once.
-
-```bash
-skillforge batch [NAMES]...
-
-Arguments:
-  NAMES    Space-separated list of skill names to install
-```
-
-**Examples:**
-```bash
-skillforge batch code-review security-audit test-generator
-```
-
-### `skillforge templates list`
-
-List all available skill templates.
-
-```bash
-skillforge templates list
-```
-
-**Output:**
-```
-Available Templates
-┌──────────────────────┬──────────────────────────────────────────┬─────────┐
-│ Name                 │ Description                              │ Version │
-├──────────────────────┼──────────────────────────────────────────┼─────────┤
-│ code-review          │ Automated code review with security...  │ 0.1.0   │
-│ security-audit       │ Security audit for code and dependencies│ 0.1.0   │
-│ test-generator       │ Generate comprehensive test suites       │ 0.1.0   │
-│ refactor-assistant   │ Code refactoring with safety checks      │ 0.1.0   │
-│ api-designer         │ RESTful API design and documentation     │ 0.1.0   │
-│ database-optimizer   │ Database query optimization and indexing │ 0.1.0   │
-│ doc-writer           │ Generate comprehensive documentation     │ 0.1.0   │
-│ migration-assistant  │ Code migration and upgrade assistance    │ 0.1.0   │
-└──────────────────────┴──────────────────────────────────────────┴─────────┘
-```
-
-### `skillforge templates use`
-
-Create a new skill from a template.
-
-```bash
-skillforge templates use [TEMPLATE_NAME] [OPTIONS]
-
-Options:
-  --dir, -d TEXT    Directory to create skill in (default: current)
-```
-
-**Examples:**
-```bash
-skillforge templates use code-review
-skillforge templates use security-audit --dir ./my-skills
-```
-
-### `skillforge pack`
-
-Bundle multiple skills into a distributable pack.
-
-```bash
-skillforge pack [NAMES]...
-
-Arguments:
-  NAMES    Space-separated list of skill names to pack
-```
-
-**Examples:**
-```bash
-skillforge pack code-review security-audit
-# Creates skill-pack.json with all skills bundled
-```
-
-### `skillforge unpack`
-
-Unbundle a skill pack.
-
-```bash
-skillforge unpack [PACK_FILE]
-
-Arguments:
-  PACK_FILE    Path to the skill-pack.json file
-```
-
-**Examples:**
-```bash
-skillforge unpack skill-pack.json
-```
-
-### `skillforge convert`
-
-Convert a skill to another framework format.
-
-```bash
-skillforge convert [SKILL_NAME] [OPTIONS]
-
-Options:
-  --to, -t TEXT    Target format: claude, cursor, cline, opencode
-```
-
-**Examples:**
-```bash
-skillforge convert code-review --to claude    # Creates SKILL.md
-skillforge convert code-review --to cursor    # Creates .cursorrules
-skillforge convert code-review --to cline     # Creates .clinerules
-skillforge convert code-review --to opencode  # Creates AGENTS.md
-```
-
-### `skillforge updates`
-
-Check for skill updates.
-
-```bash
-skillforge updates
-
-Options:
-  --all, -a    Show all available skills with versions
-```
-
-### `skillforge history`
-
-Show version history of a skill.
-
-```bash
-skillforge history [SKILL_NAME]
-
-Arguments:
-  SKILL_NAME    Name of the skill to check history for
-```
-
-### `skillforge mcp`
-
-Generate MCP server config for a skill.
-
-```bash
-skillforge mcp [SKILL_NAME] [OPTIONS]
-
-Options:
-  --output, -o TEXT    Output file (default: mcp-servers.json)
-```
-
-**Examples:**
-```bash
-skillforge mcp code-review
-# Creates mcp-servers.json for Claude Desktop integration
-```
-
-### `skillforge doctor`
-
-Check SkillForge installation and dependencies.
+Check the installation:
 
 ```bash
 skillforge doctor
-
-Options:
-  --help    Show this message and exit
 ```
 
-### `skillforge score`
+```
+                              Diagnostic Results
+┌──────────────────────────┬────────┬─────────────────────────────────────────┐
+│ Check                    │ Status │ Result                                  │
+├──────────────────────────┼────────┼─────────────────────────────────────────┤
+│ Python version           │ OK     │ 3.11.9                                  │
+│ Dependency: click        │ OK     │ installed                               │
+│ Dependency: rich         │ OK     │ installed                               │
+│ Dependency: pydantic     │ OK     │ installed                               │
+│ Dependency: yaml         │ OK     │ installed                               │
+│ Dependency: platformdirs │ OK     │ installed                               │
+│ SkillForge version       │ OK     │ 0.1.0                                   │
+│ Local registry           │ OK     │ 7 skills                                │
+│ Registry path            │ OK     │ C:\Users\you\AppData\Local\skillfo… │
+│ Registry writable        │ OK     │ writable                                │
+│ Templates available      │ OK     │ 19 templates                            │
+└──────────────────────────┴────────┴─────────────────────────────────────────┘
 
-Calculate quality score for a skill.
-
-```bash
-skillforge score [PATH]
-
-Arguments:
-  PATH    Path to skill directory (default: current)
+All 11 checks passed!
 ```
 
-**Output:**
-```
-┌────────────────────┬─────────┬────────┐
-│ Dimension          │ Score   │ Grade  │
-├────────────────────┼─────────┼────────┤
-│ Overall            │ 87.5/100│ 🥇 A   │
-│ Metadata           │ 90.0    │ A      │
-│ Documentation      │ 85.0    │ B+     │
-│ Structure          │ 100.0   │ A+     │
-│ Completeness       │ 75.0    │ B+     │
-└────────────────────┴─────────┴────────┘
-```
-
-### `skillforge changelog`
-
-Generate a changelog for a skill.
-
-```bash
-skillforge changelog [PATH]
-
-Arguments:
-  PATH    Path to skill directory (default: current)
-```
-
-### `skillforge docs`
-
-Generate documentation for a skill.
-
-```bash
-skillforge docs [PATH] [OPTIONS]
-
-Arguments:
-  PATH    Path to skill directory (default: current)
-
-Options:
-  --output, -o TEXT    Output file (default: SKILL.md)
-```
-
-### `skillforge recommend`
-
-Get skill recommendations based on current skill.
-
-```bash
-skillforge recommend [PATH]
-
-Arguments:
-  PATH    Path to skill directory (default: current)
-```
-
-### `skillforge compress`
-
-Compress a skill into a minimal bundle.
-
-```bash
-skillforge compress [PATH] [OPTIONS]
-
-Arguments:
-  PATH    Path to skill directory (default: current)
-
-Options:
-  --output, -o TEXT    Output file (default: <skill-name>.bundle)
-```
-
-### `skillforge decompress`
-
-Decompress a skill bundle.
-
-```bash
-skillforge decompress [BUNDLE_FILE] [OPTIONS]
-
-Arguments:
-  BUNDLE_FILE    Path to the bundle file
-
-Options:
-  --output, -o TEXT    Output directory (default: current)
-```
-
-### `skillforge inspect`
-
-Deep inspect a skill with detailed analysis.
-
-```bash
-skillforge inspect [PATH]
-
-Arguments:
-  PATH    Path to skill directory (default: current)
-```
-
-### `skillforge graph`
-
-Visualize the skill dependency graph for the whole registry (or one skill).
-
-```bash
-skillforge graph [NAME] [OPTIONS]
-
-Options:
-  --format, -f [mermaid|tree|json]   Output format (default: mermaid)
-  --json                            Shortcut for --format json
-```
-
-**Examples:**
-```bash
-skillforge graph                          # Mermaid graph TD for the registry
-skillforge graph my-app --format tree     # Rich tree for one skill
-skillforge graph --json                   # { "nodes": [...], "edges": [...] }
-```
-
-### `skillforge compare`
-
-Compare two skills side by side: metadata plus quality score, with a winner.
-
-```bash
-skillforge compare SKILL_A SKILL_B [OPTIONS]
-
-Options:
-  --json    Output the comparison as JSON
-```
-
-**Examples:**
-```bash
-skillforge compare code-review security-scan
-skillforge compare code-review security-scan --json
-```
-
-### `skillforge completion`
-
-Print a shell completion script for bash, zsh, fish or powershell.
-
-```bash
-skillforge completion [bash|zsh|fish|powershell]
-
-# bash
-source <(skillforge completion bash)
-
-# powershell (add to $PROFILE)
-skillforge completion powershell | Out-String | Invoke-Expression
-```
+Requirements: Python 3.10+, Windows / macOS / Linux.
 
 ---
 
-## Built-in Templates
+## 60-second quickstart
 
-SkillForge comes with **20 production-ready templates** organized by category:
-
-### 📊 Code Quality
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `code-review` | Automated code review | Review PRs for bugs and security |
-| `refactor-assistant` | Safe code refactoring | Code smells, anti-patterns |
-| `test-generator` | Generate comprehensive tests | Unit, integration, edge cases |
-
-### 🔒 Security
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `security-audit` | Security vulnerability scanner | OWASP Top 10 checks, CVE scanning |
-
-### 🚀 DevOps
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `docker-builder` | Docker configuration generator | Multi-stage builds, optimization |
-| `ci-pipeline` | CI/CD pipeline generator | GitHub Actions, GitLab CI, Jenkins |
-| `microservice-scaffold` | Microservice architecture | Service boundaries, API gateway |
-
-### 🔌 API
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `api-designer` | RESTful API design | Endpoint structure, OpenAPI specs |
-| `api-mocker` | Mock API servers | Testing with realistic data |
-| `graphql-schema` | GraphQL schema generator | Types, resolvers, subscriptions |
-| `webhook-manager` | Webhook integration | Signature verification, retries |
-
-### 📈 Data
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `database-optimizer` | Query optimization | Indexes, N+1 detection |
-| `data-pipeline` | ETL/data processing | Batch, streaming, data lakes |
-
-### 📚 Documentation
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `doc-writer` | Documentation generator | README, API docs, changelog |
-
-### 🔄 Migration
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `migration-assistant` | Code migration | Python 2→3, React hooks, DB |
-
-### ⚡ Performance
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `performance-profiler` | Performance optimization | CPU, memory, algorithm analysis |
-
-### 🏗️ Architecture
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `state-machine` | Finite state machines | State diagrams, transitions |
-| `cli-builder` | CLI tool generator | Commands, parsing, completion |
-
-### 🔧 Utilities
-| Template | Description | Use Case |
-|----------|-------------|----------|
-| `regex-builder` | Regular expression builder | Patterns, testing, documentation |
-
-**Quick start with templates:**
 ```bash
-# List all templates by category
-skillforge templates list
-
-# Create a skill from template
-skillforge templates use code-review
-
-# Create in specific directory
-skillforge templates use security-audit --dir ./my-skills
-
-# Inspect template content
-skillforge templates inspect api-designer
+skillforge init my-skill --name my-skill --author you   # scaffold a skill
+skillforge validate my-skill                            # check it
+skillforge score my-skill                               # grade it (A+…F)
+skillforge publish my-skill                             # add to local registry
+skillforge search my                                    # find it again
 ```
+
+Every command that reads data also works in scripts — add `--json` to
+`list`, `search`, `info`, `stats`, `score`, `validate`, `doctor`, `graph` or
+`compare`. Commands exit **non-zero** on failure, so they are CI-friendly.
 
 ---
 
-## MCP Integration
+## Your first skill
 
-SkillForge generates **MCP (Model Context Protocol) configs** for any skill, making it easy to integrate with Claude Desktop, Cursor, and other MCP-compatible tools.
+A full round trip with real output. We create a skill, grade it, improve it,
+publish it and find it again.
 
-```bash
-# Generate MCP config for a skill
-skillforge mcp code-review
-
-# Output: mcp-servers.json
-```
-
-**Generated config:**
-```json
-{
-  "name": "code-review",
-  "description": "Automated code review",
-  "type": "stdio",
-  "command": "skillforge",
-  "args": ["test", ".", "--json"],
-  "env": {"SKILL_NAME": "code-review"}
-}
-```
-
-**Use with Claude Desktop:**
-1. Run `skillforge mcp your-skill`
-2. Copy the output to Claude Desktop's config
-3. Restart Claude Desktop
-
----
-
-## Quality Scoring
-
-Every skill gets a **quality score** across 4 dimensions:
+### 1. Scaffold
 
 ```bash
-# Score a skill
-skillforge score .
-
-# Output:
-# ┌────────────────────┬─────────┬────────┐
-# │ Dimension          │ Score   │ Grade  │
-# ├────────────────────┼─────────┼────────┤
-# │ Overall            │ 87.5/100│ 🥇 A   │
-# │ Metadata           │ 90.0    │ A      │
-# │ Documentation      │ 85.0    │ B+     │
-# │ Structure          │ 100.0   │ A+     │
-# │ Completeness       │ 75.0    │ B+     │
-# └────────────────────┴─────────┴────────┘
-```
-
-**Scoring Dimensions:**
-- **Metadata** — Name, version, author, tags, dependencies
-- **Documentation** — Instructions, examples, clarity
-- **Structure** — Required fields, organization
-- **Completeness** — Optional fields, homepage, repository
-
----
-
-## Skill Format Specification
-
-### SKILL.md Format
-
-Skills can be defined in `SKILL.md` (compatible with Claude Code):
-
-```markdown
-# Skill Name
-
-A description of what the skill does.
-
-**Author:** author-name
-**Version:** 1.0.0
-**Framework:** universal
-**Capability:** tool
-**Tags:** tag1, tag2, tag3
-
-## Dependencies
-
-- dependency-name >=1.0.0
-
-## Environment Variables
-
-- `VAR_NAME`: Description of the variable
-
-## Instructions
-
-Your skill instructions go here...
-```
-
-### skillforge.yaml Format
-
-Skills can also be defined in `skillforge.yaml`:
-
-```yaml
-metadata:
-  name: skill-name
-  version: 1.0.0
-  description: "A description of the skill"
-  author: author-name
-  framework: universal
-  capability: tool
-  tags:
-    - tag1
-    - tag2
-  dependencies:
-    - name: dependency-name
-      version_constraint: ">=1.0.0"
-  homepage: "https://example.com"
-  repository: "https://github.com/example/skill"
-
-config:
-  env_vars:
-    API_KEY: "Required API key for the service"
-    DEBUG: "Enable debug mode (default: false)"
-  requires_permissions:
-    - filesystem
-    - network
-  max_execution_time_seconds: 300
-  sandbox_required: false
-
-content:
-  instructions: |
-    Your skill instructions go here...
-    You can use multi-line strings.
-```
-
-### Skill Fields Reference
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Unique skill name |
-| `version` | string | Yes | Semantic version (MAJOR.MINOR.PATCH) |
-| `description` | string | Yes | Brief description (10-500 chars) |
-| `author` | string | Yes | Skill author name |
-| `framework` | enum | No | Target framework (default: universal) |
-| `capability` | enum | No | Skill capability type (default: tool) |
-| `tags` | list | No | Searchable tags |
-| `dependencies` | list | No | Other skills this depends on |
-| `homepage` | string | No | Project homepage URL |
-| `repository` | string | No | Source code repository URL |
-
-### Capability Types
-
-| Capability | Description |
-|------------|-------------|
-| `tool` | Standalone tool that performs a specific task |
-| `workflow` | Multi-step workflow that orchestrates other tools |
-| `agent` | Autonomous agent that can make decisions |
-| `hook` | Event-driven hook that runs on specific triggers |
-| `rule` | Validation rule that checks code quality |
-| `prompt` | Reusable prompt template |
-| `dataset` | Training or reference dataset |
-
-### Framework Values
-
-| Framework | Description |
-|-----------|-------------|
-| `universal` | Works with any framework |
-| `claude-code` | Optimized for Claude Code |
-| `codex` | Optimized for OpenAI Codex |
-| `cursor` | Optimized for Cursor |
-| `cline` | Optimized for Cline |
-| `opencode` | Optimized for OpenCode |
-
----
-
-## Examples
-
-### Example 1: Code Review Skill
-
-```yaml
-# skillforge.yaml
-metadata:
-  name: code-review
-  version: 1.2.0
-  description: "AI-powered code review with bug detection and security analysis"
-  author: skillforge-examples
-  framework: universal
-  capability: tool
-  tags:
-    - code-review
-    - quality
-    - security
-  dependencies:
-    - name: security-scan
-      version_constraint: ">=0.5.0"
-
-config:
-  env_vars:
-    REVIEW_DEPTH: "Review depth: quick, standard, or deep"
-  requires_permissions:
-    - filesystem
-  max_execution_time_seconds: 600
-
-content:
-  instructions: |
-    Review code for:
-    1. Bugs and logic errors
-    2. Security vulnerabilities
-    3. Performance issues
-    4. Style violations
-```
-
-### Example 2: Security Scanner
-
-```yaml
-# skillforge.yaml
-metadata:
-  name: security-scan
-  version: 0.8.0
-  description: "Comprehensive security vulnerability scanner"
-  author: skillforge-examples
-  framework: universal
-  capability: tool
-  tags:
-    - security
-    - vulnerability
-    - scanning
-
-config:
-  env_vars:
-    SCAN_TARGETS: "Comma-separated scan targets"
-    FAIL_ON: "Severity level to fail on"
-  requires_permissions:
-    - filesystem
-    - network
-
-content:
-  instructions: |
-    Scan for:
-    1. Dependency CVEs
-    2. Hardcoded secrets
-    3. Code vulnerabilities
-    4. Configuration issues
-```
-
-### Example 3: Workflow Composition
-
-```bash
-# Create a complete CI/CD pipeline
-skillforge compose \
-  code-review \
-  security-scan \
-  auto-format \
-  docs-generator \
-  --type chain \
-  --name "ci-pipeline" \
-  --format yaml > .skillforge/workflow.yaml
-```
-
-Output:
-```yaml
-name: ci-pipeline
-description: Chained execution of 4 skills
-skills_used:
-  - code-review
-  - security-scan
-  - auto-format
-  - docs-generator
-steps:
-  - skill: code-review
-    action: execute
-    depends_on: []
-  - skill: security-scan
-    action: execute
-    depends_on:
-      - code-review
-  - skill: auto-format
-    action: execute
-    depends_on:
-      - security-scan
-  - skill: docs-generator
-    action: execute
-    depends_on:
-      - auto-format
-```
-
----
-
-## Composition Engine
-
-### Composition Types
-
-#### Chain (Sequential)
-Skills execute one after another, each waiting for the previous to complete.
-
-```bash
-skillforge compose skill-a skill-b skill-c --type chain
+skillforge init . --name pdf-summarizer --author you
 ```
 
 ```
-skill-a → skill-b → skill-c
+Created ...\skillforge.yaml
+Created ...\SKILL.md
+┌────────────────────────────── SkillForge Init ──────────────────────────────┐
+│ Skill project initialized!                                                  │
+│                                                                             │
+│   Name: pdf-summarizer                                                      │
+│   Author: you                                                               │
+│   Framework: universal                                                      │
+│                                                                             │
+│ Next steps:                                                                 │
+│   1. Edit SKILL.md with your skill instructions                             │
+│   2. Run skillforge validate . to check your skill                          │
+│   3. Run skillforge publish . to publish to registry                        │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### Parallel
-All skills execute simultaneously.
-
-```bash
-skillforge compose skill-a skill-b skill-c --type parallel
-```
-
-```
-skill-a ─┐
-skill-b ─┼→ (done)
-skill-c ─┘
-```
-
-#### Auto (DAG)
-Automatically determines execution order based on dependencies.
-
-```bash
-skillforge compose skill-a skill-b skill-c --type auto
-```
-
-### Composition Analysis
-
-The composition engine provides detailed analysis:
-
-```bash
-skillforge compose skill-a skill-b --format yaml
-```
-
-```yaml
-# Composition plan
-name: composed-workflow
-skills_used:
-  - skill-a
-  - skill-b
-steps:
-  - skill: skill-a
-    action: execute
-    depends_on: []
-  - skill: skill-b
-    action: execute
-    depends_on:
-      - skill-a
-```
-
-```
-# Analysis
-Composition Analysis
-  Total steps: 2
-  Total skills: 2
-  Critical path length: 2
-  Parallel groups: 2
-```
-
-### Export Formats
-
-#### YAML
-```bash
-skillforge compose skill-a skill-b --format yaml
-```
-
-#### JSON
-```bash
-skillforge compose skill-a skill-b --format json
-```
-
-#### Mermaid Diagram
-```bash
-skillforge compose skill-a skill-b --format mermaid
-```
-
-Output:
-```mermaid
-graph TD
-    skill-a_execute [skill-a\nexecute]
-    skill-b_execute [skill-b\nexecute]
-    skill-a_execute --> skill-b_execute
-```
-
----
-
-## Dependency Resolution
-
-### How It Works
-
-SkillForge uses **topological sorting** with **semantic version constraints**:
-
-1. **Parse Dependencies** — Read all dependency declarations
-2. **Build Graph** — Create dependency graph
-3. **Detect Cycles** — Check for circular dependencies
-4. **Resolve Versions** — Find compatible versions
-5. **Determine Order** — Topological sort for install order
-
-### Version Constraints
-
-| Constraint | Meaning | Example |
-|------------|---------|---------|
-| `>=1.0.0` | Version 1.0.0 or higher | `>=1.0.0` |
-| `^1.0.0` | Compatible with 1.0.0 (same major) | `^1.0.0` |
-| `~1.0.0` | Compatible with 1.0.0 (same major.minor) | `~1.0.0` |
-| `1.0.0` | Exactly version 1.0.0 | `1.0.0` |
-
-### Conflict Detection
-
-```bash
-skillforge compose skill-a skill-b
-```
-
-If `skill-a` requires `dep >=2.0.0` but `skill-b` requires `dep <2.0.0`:
-
-```
-Composition error: Dependency resolution failed:
-  - dep: 1.5.0 does not satisfy >=2.0.0 (from skill-a)
-```
-
-### Dependency Trees
-
-```bash
-skillforge tree code-review
-```
-
-```
-code-review v1.2.0
-├── security-scan v0.8.0
-└── base-review v1.0.0
-    └── linter v0.5.0
-```
-
----
-
-## Sandbox Testing
-
-### Validation
+### 2. Check it
 
 ```bash
 skillforge validate .
 ```
 
-Checks:
-- Name is valid
-- Version is valid
-- Description meets length requirements
-- Author is specified
-- Required files exist
+```
+             Validation: pdf-summarizer
+┌─────────────┬────────┬────────────────────────────────────┐
+│ Check       │ Status │ Details                            │
+├─────────────┼────────┼────────────────────────────────────┤
+│ Name        │ OK     │ pdf-summarizer                     │
+│ Version     │ OK     │ 0.1.0                              │
+│ Description │ OK     │ A new SkillForge skill             │
+│ Author      │ OK     │ you                                │
+│ Framework   │ OK     │ universal                          │
+│ Capability  │ OK     │ tool                               │
+│ Warning     │ WARN   │ No tags provided                   │
+│ Warning     │ WARN   │ Version is 0.1.0 (default)         │
+└─────────────┴────────┴────────────────────────────────────┘
 
-### Testing
-
-```bash
-skillforge test .
+Validation passed with 2 warnings
 ```
 
-Runs the skill in an isolated environment:
-- Creates temporary directory
-- Copies skill files
-- Executes test commands
-- Reports results
-- Cleans up
+Warnings are fine for a draft — `skillforge validate . --strict` turns them
+into a non-zero exit for CI.
 
-### Diffing
+### 3. Grade it
 
-Compare two versions of a skill:
+```bash
+skillforge score .
+```
 
-```python
-from skillforge.sandbox import SkillSandbox
+```
+    Quality Score: pdf-summarizer
+┌───────────────┬──────────┬─────────┐
+│ Dimension     │ Score    │ Grade   │
+├───────────────┼──────────┼─────────┤
+│ Overall       │ 56.2/100 │ [NEW] C │
+│ Metadata      │ 65.0     │ B       │
+│ Documentation │ 30.0     │ F       │
+│ Structure     │ 100.0    │ A+      │
+│ Completeness  │ 43.8     │ D       │
+└───────────────┴──────────┴─────────┘
 
-sandbox = SkillSandbox()
-changes = sandbox.diff(skill_v1, skill_v2)
+Suggestions:
+  → Add tags for better discoverability
+  → Add examples for better documentation
+```
 
-# Returns:
-# {
-#     "metadata_changed": True,
-#     "content_changed": True,
-#     "files_added": ["new_file.py"],
-#     "files_removed": ["old_file.py"],
-#     "files_changed": ["main.py"]
-# }
+### 4. Follow the suggestions
+
+Add tags and a real description to `skillforge.yaml`:
+
+```yaml
+metadata:
+  name: pdf-summarizer
+  version: 0.2.0
+  description: "Summarize PDF documents into concise structured briefs"
+  author: you
+  framework: universal
+  capability: tool
+  tags: [pdf, summarize, documents]
+```
+
+And fill in `SKILL.md`:
+
+````markdown
+## Instructions
+
+Step 1: Read the target PDF and extract its text content.
+Step 2: Break the document into sections and summarize each one.
+Step 3: Merge the section summaries into one brief with the key facts.
+
+## Examples
+
+    pdf-summarizer report.pdf --length short
+````
+
+Re-check and re-grade:
+
+```bash
+skillforge validate .   # → Validation passed!
+skillforge score .
+```
+
+```
+      Quality Score: pdf-summarizer
+┌───────────────┬──────────┬─────────────┐
+│ Dimension     │ Score    │ Grade       │
+├───────────────┼──────────┼─────────────┤
+│ Overall       │ 73.5/100 │ [BRONZE] B+ │
+│ Metadata      │ 80.0     │ A           │
+│ Documentation │ 70.0     │ B+          │
+│ Structure     │ 100.0    │ A+          │
+│ Completeness  │ 50.0     │ C           │
+└───────────────┴──────────┴─────────────┘
+```
+
+**56.2 (C) → 73.5 (B+)** — the scorer tells you exactly what to fix.
+
+### 5. Publish and find it
+
+```bash
+skillforge publish .
+```
+
+```
+┌──────────────────────────── SkillForge Publish ─────────────────────────────┐
+│ Published!                                                                  │
+│                                                                             │
+│   Skill: pdf-summarizer                                                     │
+│   Version: 0.2.0                                                            │
+│   ID: you_pdf-summarizer@0.2.0                                              │
+│                                                                             │
+│ The skill is now available in your local registry.                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+```bash
+skillforge search pdf
+```
+
+```
+                           Search Results (1 found)
+┌────────────────┬────────┬─────────┬────────────┬────────────────────────────┐
+│ Name           │ Author │ Version │ Capability │ Description                │
+├────────────────┼────────┼─────────┼────────────┼────────────────────────────┤
+│ pdf-summarizer │ you    │ 0.2.0   │ tool       │ Summarize PDF documents    │
+│                │        │         │            │ into concise str           │
+└────────────────┴────────┴─────────┴────────────┴────────────────────────────┘
+```
+
+That is the whole lifecycle: **init → validate → score → improve → publish → search**.
+
+---
+
+## Recipes
+
+| You want to… | Command |
+|---|---|
+| Start a skill from a template | `skillforge init . --name my-skill --template doc-writer` |
+| List the templates | `skillforge templates list` |
+| Validate (draft mode) | `skillforge validate .` |
+| Validate for CI (fails on warnings) | `skillforge validate . --strict` |
+| Grade a skill | `skillforge score .` |
+| Grade it in a pipeline | `skillforge score . --json` |
+| Run a skill in a sandbox | `skillforge test .` |
+| Publish to the local registry | `skillforge publish .` |
+| Find skills | `skillforge search pdf --tags documents` |
+| Inspect a registry skill | `skillforge info pdf-summarizer` |
+| Show registry stats | `skillforge stats` |
+| Export a distributable package | `skillforge export . -o ./dist` |
+| Convert to another framework | `skillforge convert pdf-summarizer -t opencode` |
+| Compose a workflow | `skillforge compose greeting greeting-app --format mermaid` |
+| Visualize dependencies | `skillforge graph greeting-app` |
+| Compare two skills | `skillforge compare greeting greeting-app` |
+| Generate docs / changelog | `skillforge docs .` / `skillforge changelog .` |
+| Generate an MCP server config | `skillforge mcp pdf-summarizer -o server.json` |
+| Health-check your install | `skillforge doctor` |
+
+---
+
+## Command reference
+
+All 32 commands. Each group is collapsible — click to expand.
+
+<details>
+<summary><b>Start, check and document a project</b> (9 commands)</summary>
+
+| Command | What it does |
+|---|---|
+| `init [PATH]` | Scaffold a new skill project (`-n` name, `-a` author, `-f` framework, `-t` template) |
+| `validate [PATH]` | Validate a skill project (`--strict`, `--json`; exits non-zero on failure) |
+| `score [PATH]` | Quality score across 4 dimensions (`--json`) |
+| `test [PATH]` | Test a skill in a sandbox (`-t` timeout, `-c` custom command) |
+| `docs [PATH]` | Generate documentation for a skill (`-o` output file) |
+| `changelog [PATH]` | Generate a changelog for a skill |
+| `inspect [PATH]` | Deep inspection with detailed analysis |
+| `recommend [PATH]` | Recommend related skills based on the current one |
+| `doctor` | Check installation, dependencies and registry health (`--json`) |
+
+</details>
+
+<details>
+<summary><b>Browse and manage the registry</b> (9 commands)</summary>
+
+| Command | What it does |
+|---|---|
+| `list` | List all installed skills (`--json`) |
+| `search [QUERY]` | Search skills (`-t` tags, `-c` capability, `-f` framework, `-l` limit, `--json`) |
+| `info [NAME]` | Show information about a skill (`-v` version, `--json`) |
+| `stats` | Registry statistics (`--json`) |
+| `install NAME` | Install a skill from the registry (`-v` version) |
+| `batch NAMES…` | Install multiple skills at once |
+| `delete NAME` | Delete a skill (`-v` version, `--all`) |
+| `history NAME` | Version history of a skill |
+| `updates` | Check for skill updates (`-a` to show all) |
+
+</details>
+
+<details>
+<summary><b>Compose, visualize and compare</b> (4 commands)</summary>
+
+| Command | What it does |
+|---|---|
+| `compose SKILLS…` | Compose skills into a workflow (`-n` name, `-t` auto/chain/parallel, `-f` yaml/json/mermaid) |
+| `graph [NAME]` | Dependency graph of the registry or one skill (`-f` mermaid/tree/json, `--json`) |
+| `tree NAME` | Dependency tree for one skill |
+| `compare A B` | Side-by-side metadata + quality score (`--json`) |
+
+</details>
+
+<details>
+<summary><b>Distribute and convert</b> (8 commands)</summary>
+
+| Command | What it does |
+|---|---|
+| `publish PATH` | Publish a skill to the local registry |
+| `export PATH` | Export a distributable package (`-o` output dir) |
+| `convert NAME` | Convert to another framework (`-t` claude/cursor/cline/opencode) |
+| `pack NAMES…` | Bundle multiple skills into a pack |
+| `unpack` | Unbundle a skill pack |
+| `compress PATH` | Compress a skill into a minimal bundle (`-o` output file) |
+| `decompress` | Decompress a skill bundle |
+| `mcp NAME` | Generate MCP server config (`-o` output file) |
+
+</details>
+
+<details>
+<summary><b>Tooling</b> (2 commands)</summary>
+
+| Command | What it does |
+|---|---|
+| `templates` | Manage templates — `list`, `inspect NAME`, `use NAME [-d DIR]` |
+| `completion` | Print a shell completion script (bash / zsh / fish / powershell) |
+
+</details>
+
+`skillforge --help` and `skillforge <command> --help` work everywhere.
+
+---
+
+## Built-in templates
+
+19 production-ready starting points — `skillforge templates list`.
+
+| Template | Purpose |
+|---|---|
+| `api-designer` | RESTful API design and documentation |
+| `api-mocker` | Generate mock API servers for testing |
+| `ci-pipeline` | Generate CI/CD pipeline configurations |
+| `cli-builder` | Generate CLI tools with proper structure |
+| `code-review` | Automated code review with security and style checks |
+| `data-pipeline` | Build ETL and data processing pipelines |
+| `database-optimizer` | Database query optimization and indexing |
+| `doc-writer` | Generate comprehensive documentation |
+| `docker-builder` | Generate optimized Docker configurations |
+| `graphql-schema` | Generate GraphQL schemas from requirements |
+| `microservice-scaffold` | Scaffold microservice architecture |
+| `migration-assistant` | Code migration and upgrade assistance |
+| `performance-profiler` | Profile and optimize code performance |
+| `refactor-assistant` | Code refactoring with safety checks |
+| `regex-builder` | Build and test regular expressions |
+| `security-audit` | Security audit for code and dependencies |
+| `state-machine` | Generate finite state machines from specs |
+| `test-generator` | Generate comprehensive test suites |
+| `webhook-manager` | Manage and process webhook integrations |
+
+Two ways to use one:
+
+```bash
+skillforge init . --name my-skill --template doc-writer
+skillforge templates use doc-writer -d ./my-skill
+```
+
+---
+
+## Skill format
+
+A skill is a directory with two files. `skillforge.yaml` is the source of truth
+for metadata; `SKILL.md` holds the human-readable instructions.
+
+```
+my-skill/
+├── skillforge.yaml   # metadata, config, version, tags, dependencies
+└── SKILL.md          # instructions, usage, examples
+```
+
+**skillforge.yaml** (abridged from a real skill):
+
+```yaml
+metadata:
+  name: pdf-summarizer
+  version: 0.2.0
+  description: "Summarize PDF documents into concise structured briefs"
+  author: you
+  framework: universal        # universal | claude-code | codex | cursor | cline | opencode
+  capability: tool            # tool | workflow | agent | hook | rule | prompt | dataset
+  tags: [pdf, summarize, documents]
+  dependencies: []            # e.g. {name: greeting, version_constraint: ">=0.1.0"}
+
+config:
+  env_vars: {}
+  requires_permissions: []
+  max_execution_time_seconds: 300
+  sandbox_required: false
+
+content: {}                   # usually filled from SKILL.md
+```
+
+**SKILL.md** uses `#` for the name and `##` sections for content:
+
+````markdown
+# pdf-summarizer
+
+One-line description.
+
+**Author:** you
+**Version:** 0.2.0
+
+## Instructions
+
+What the agent should do, step by step.
+
+## Examples
+
+    pdf-summarizer report.pdf --length short
+````
+
+Loading order when several config files exist:
+`skillforge.yaml` → `skillforge.yml` → `skillforge.json` → `skill.md` → `SKILL.md`.
+Instructions written in `SKILL.md` are always merged in, so `score`, `docs`
+and `recommend` see them even when a YAML config exists.
+`skillforge.json` works too if you prefer JSON over YAML.
+
+---
+
+## Distribution: export, convert, pack, MCP
+
+```bash
+skillforge export . -o ./dist                     # distributable package
+skillforge convert pdf-summarizer -t opencode      # → AGENTS.md
+skillforge convert pdf-summarizer -t claude        # → Claude Code format
+skillforge convert pdf-summarizer -t cursor        # → Cursor rules
+skillforge convert pdf-summarizer -t cline         # → Cline format
+skillforge pack greeting greeting-app              # bundle several skills
+skillforge mcp pdf-summarizer -o server.json       # MCP server config
+```
+
+- **4 export formats** — Claude Code, Cursor, Cline, OpenCode
+- **Versioned** — `history`, `updates`, semantic versions with `>=`, `^`, `~` constraints
+- **Composable packs** — ship a whole skill set as one artifact
+
+---
+
+## Composition, graphs and comparison
+
+Chain skills into a workflow and export it as YAML, JSON or a Mermaid diagram:
+
+```bash
+skillforge compose greeting greeting-app --format mermaid
+```
+
+```
+graph TD
+    greeting_install
+    greeting-app_install
+    greeting_install --> greeting-app_install
+    greeting_activate
+    greeting_install --> greeting_activate
+    greeting-app_activate
+    greeting-app_install --> greeting-app_activate
+```
+
+(plus an analysis panel: total steps, skills, critical path, parallel groups)
+
+Dependency graph of one skill:
+
+```bash
+skillforge graph greeting-app
+```
+
+```
+graph TD
+    greeting-app --> greeting
+```
+
+Dependency tree:
+
+```bash
+skillforge tree greeting-app
+```
+
+```
+greeting-app v0.1.0
+└── greeting >=0.1.0
+```
+
+Compare two skills — metadata *and* quality score, with a winner:
+
+```bash
+skillforge compare greeting greeting-app
+```
+
+```
+                       Compare: greeting vs greeting-app
+┌───────────────┬────────────────────────┬────────────────────────────────────┐
+│ Field         │ greeting               │ greeting-app                       │
+├───────────────┼────────────────────────┼────────────────────────────────────┤
+│ Version       │ 0.1.0                  │ 0.1.0                              │
+│ Description   │ A new SkillForge skill │ Wraps the greeting skill into an   │
+│               │                        │ app flow                           │
+│ Author        │ you                    │ you                                │
+│ Framework     │ universal              │ universal                          │
+│ Capability    │ tool                   │ workflow                           │
+│ Tags          │                        │ app, demo                          │
+│ Dependencies  │ 0                      │ 1                                  │
+│ Quality score │ 41.6 (D)               │ 45.7 (D)                           │
+└───────────────┴────────────────────────┴────────────────────────────────────┘
+
+Winner: greeting-app
+```
+
+Scripting example:
+
+```bash
+skillforge list --json
+```
+
+```json
+[
+  {
+    "name": "demo-skill",
+    "author": "test-user",
+    "version": "0.1.0",
+    "description": "A new SkillForge skill",
+    "versions": ["0.1.0"]
+  }
+]
+```
+
+---
+
+## Shell completion
+
+```bash
+# bash
+echo 'eval "$(skillforge completion bash)"' >> ~/.bashrc
+
+# zsh
+echo 'eval "$(skillforge completion zsh)"' >> ~/.zshrc
+
+# fish
+skillforge completion fish > ~/.config/fish/completions/skillforge.fish
+
+# powershell
+skillforge completion powershell | Out-String | Invoke-Expression
 ```
 
 ---
 
 ## Python API
 
-### Core Models
+The whole model layer is importable — no CLI required:
 
 ```python
-from skillforge.core import (
-    Skill,
-    SkillMetadata,
-    SkillVersion,
-    SkillDependency,
-    SkillConfig,
+from skillforge.core import Skill, SkillMetadata, SkillVersion
+
+meta = SkillMetadata(
+    name="pdf-summarizer",
+    description="Summarize PDF documents into concise structured briefs",
+    author="you",
+    version=SkillVersion.parse("0.2.0"),
+    tags=["pdf", "summarize"],
 )
+skill = Skill(metadata=meta, content={"instructions": "Summarize the PDF."})
+print(skill.metadata.name, "->", skill.metadata.version)
 
-# Create a skill
-skill = Skill(
-    metadata=SkillMetadata(
-        name="my-skill",
-        version=SkillVersion(major=1, minor=0, patch=0),
-        description="My awesome skill",
-        author="me",
-    ),
-    content={"instructions": "Do something cool"},
-)
-
-# Version comparison
-v1 = SkillVersion.parse("1.0.0")
-v2 = SkillVersion.parse("2.0.0")
-assert v2 > v1
-
-# Version constraints
-assert v2.satisfies(">=1.0.0")
-assert v2.satisfies("^1.0.0")
+v2 = SkillVersion.parse("2.1.0")
+print("2.1.0 satisfies >=1.0.0:", v2.satisfies(">=1.0.0"))
 ```
 
-### Dependency Resolver
-
-```python
-from skillforge.core.resolver import DependencyResolver
-
-resolver = DependencyResolver()
-resolver.register_skill(skill_a)
-resolver.register_skill(skill_b)
-
-# Resolve dependencies
-result = resolver.resolve(skill_with_deps)
-if result.success:
-    print(f"Resolved {len(result.resolved)} dependencies")
-
-# Get install order
-order = resolver.get_install_order([skill_a, skill_b])
+```
+pdf-summarizer -> 0.2.0
+2.1.0 satisfies >=1.0.0: True
 ```
 
-### Registry
+Other entry points:
 
 ```python
+from skillforge.core import SkillLoader, DependencyResolver
 from skillforge.registry import SkillRegistry
-
-registry = SkillRegistry()
-
-# Publish
-registry.publish(skill)
-
-# Search
-results = registry.search(query="code review")
-
-# Get
-skill = registry.get_skill("code-review")
-
-# Stats
-stats = registry.get_stats()
+from skillforge.quality import SkillScorer
 ```
 
-### Composition
-
-```python
-from skillforge.composition import SkillComposition
-
-composition = SkillComposition()
-composition.register_skill(skill_a)
-composition.register_skill(skill_b)
-
-# Chain
-plan = composition.chain(["skill-a", "skill-b"])
-
-# Parallel
-plan = composition.parallel(["skill-a", "skill-b"])
-
-# Analyze
-analysis = composition.analyze(plan)
-
-# Export
-yaml_output = composition.export_plan(plan, output_format="yaml")
-```
+- **DependencyResolver** — resolves `>=`, `^`, `~` constraints, detects circular dependencies
+- **SkillScorer** — the same 4-dimension scoring the CLI uses
+- **SkillRegistry** — list/search/get skills programmatically
 
 ---
 
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-### Development Setup
+## Development
 
 ```bash
 git clone https://github.com/reyansh14coder-ux/skillforge.git
 cd skillforge
+python -m venv venv
+venv\Scripts\activate          # Windows — use: source venv/bin/activate
 pip install -e ".[dev]"
+
+pytest tests/ -q               # 73 passed
+ruff check skillforge/ tests/  # all checks passed
 ```
 
-### Running Tests
+Layout:
 
-```bash
-pytest tests/ -v
+```
+skillforge/
+├── skillforge/
+│   ├── cli/main.py            # all 32 commands (click + rich)
+│   ├── core/                  # models, loader, dependency resolver
+│   ├── registry/              # local skill registry
+│   ├── composition/           # workflow engine (chain/parallel/DAG)
+│   ├── quality/               # scoring, validation, analytics
+│   ├── sandbox/               # isolated skill testing
+│   ├── templates/             # 19 built-in templates
+│   └── utils/
+├── tests/
+│   ├── test_skillforge.py     # 49 unit tests
+│   └── test_cli.py            # 24 CLI tests
+├── docs/ARCHITECTURE.md
+├── examples/
+└── .github/workflows/ci.yml   # lint + tests on 3.10 / 3.11 / 3.12
 ```
 
-### Code Style
-
-```bash
-ruff check .
-ruff format .
-```
+CI runs `ruff check skillforge/ tests/` and `pytest tests/ -v` on every push
+for Python 3.10, 3.11 and 3.12, then builds the package with `python -m build`.
 
 ---
 
 ## Roadmap
 
-### Phase 1: Core (Complete)
-- [x] Skill models and validation
-- [x] Dependency resolution
-- [x] Local registry
-- [x] CLI interface
-- [x] Sandbox testing
-- [x] Composition engine
-- [x] Test suite (70 tests)
-- [x] CI/CD pipeline
-- [x] Skill templates and scaffolding (19 built-in)
+### Phase 1: Core (complete)
 
-### Phase 2: Remote Registry
-- [ ] Remote registry server (skillforge.dev)
+- [x] Skill models, validation and semantic versioning
+- [x] Dependency resolution (with cycle detection)
+- [x] Local registry with search, history and updates
+- [x] 32-command CLI with `--json` and shell completion
+- [x] Sandbox testing
+- [x] Composition engine (chain / parallel / DAG)
+- [x] Quality scoring (4 dimensions)
+- [x] 19 built-in templates
+- [x] Test suite (73 tests) and CI pipeline
+
+### Phase 2: Remote registry
+
+- [ ] Remote registry server
 - [ ] User authentication
 - [ ] Skill ratings and reviews
 - [ ] Download statistics
 
-### Phase 3: Advanced Features
+### Phase 3: Advanced features
+
 - [ ] Automated security scanning
 - [ ] IDE extensions (VS Code, JetBrains)
 - [ ] Team/organization registries
-- [ ] Skill analytics and usage tracking
+- [ ] Skill usage analytics
 
 ### Phase 4: Ecosystem
+
 - [ ] Skill marketplace
 - [ ] Paid skills support
-- [ ] Enterprise features
-- [ ] API for programmatic access
+- [ ] Public API for programmatic access
+
+---
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+1. Fork the repository and create a feature branch
+2. Make your change with tests (`pytest tests/ -q`)
+3. Keep the linter green (`ruff check skillforge/ tests/`)
+4. Open a pull request against
+   [reyansh14coder-ux/skillforge](https://github.com/reyansh14coder-ux/skillforge)
+
+Bug reports and feature requests go to
+[GitHub Issues](https://github.com/reyansh14coder-ux/skillforge/issues).
 
 ---
 
 ## License
 
-MIT License - see [LICENSE](LICENSE)
+MIT — see [LICENSE](LICENSE).
 
----
-
-## Acknowledgments
-
-Built for the AI agent community. Inspired by npm, pip, cargo, and the amazing work being done with Claude Code, Codex, Cursor, and other AI coding agents.
+Built for the AI agent community, inspired by npm, pip and cargo.
